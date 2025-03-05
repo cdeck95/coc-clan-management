@@ -8,10 +8,11 @@ import {
 } from "@aws-sdk/client-s3";
 import { StreamingBlobPayloadInputTypes } from "@smithy/types";
 
+// S3 configuration
 const bucketName = process.env.NEXT_PUBLIC_S3_BUCKET_NAME || "clash-data";
 const region = process.env.NEXT_PUBLIC_AWS_REGION || "us-east-1";
 
-// Create S3 client
+// Create S3 client with proper credentials
 const s3Client = new S3Client({
   region,
   credentials: {
@@ -20,24 +21,28 @@ const s3Client = new S3Client({
   },
 });
 
-// LocalStorage key prefix
-const LS_PREFIX = "coc_clan_";
+// Enable debug logging for S3 operations
+const DEBUG = true;
 
 /**
- * Put object into S3 bucket or localStorage fallback
+ * Log debugging information if debug mode is enabled
+ */
+function debugLog(...args: any[]): void {
+  if (DEBUG) {
+    console.log("[S3]", ...args);
+  }
+}
+
+/**
+ * Put object into S3 bucket
  */
 export async function putObject<T>(key: string, data: T): Promise<void> {
-  // Always save to localStorage as a backup/fallback
-  try {
-    localStorage.setItem(`${LS_PREFIX}${key}`, JSON.stringify(data));
-  } catch (error) {
-    console.error("LocalStorage save error:", error);
-  }
-
-  // If we're in development or missing AWS credentials, don't try S3
-  if (isUsingLocalStorageFallback()) {
-    return; // Use only localStorage in development
-  }
+  debugLog(`Saving object to S3: ${key}`);
+  debugLog("Data:", data);
+  debugLog("Bucket:", bucketName);
+  debugLog("Region:", region);
+  debugLog("Access Key ID:", process.env.NEXT_PUBLIC_AWS_ACCESS_KEY_ID);
+  debugLog("Secret Access Key:", process.env.NEXT_PUBLIC_AWS_SECRET_ACCESS_KEY);
 
   try {
     const command = new PutObjectCommand({
@@ -48,34 +53,18 @@ export async function putObject<T>(key: string, data: T): Promise<void> {
     });
 
     await s3Client.send(command);
-    console.log(`Successfully saved to S3: ${key}`);
+    debugLog(`Successfully saved to S3: ${key}`);
   } catch (error) {
-    console.error(
-      `S3 putObject error for key ${key}, using localStorage fallback:`,
-      error
-    );
-    // We've already saved to localStorage, so we can just return
+    console.error(`S3 putObject error for key ${key}:`, error);
+    throw new Error(`Failed to save data to S3: ${error.message}`);
   }
 }
 
 /**
- * Get object from S3 bucket or localStorage fallback
+ * Get object from S3 bucket
  */
 export async function getObject<T>(key: string): Promise<T | null> {
-  // Try localStorage first for faster access
-  try {
-    const localData = localStorage.getItem(`${LS_PREFIX}${key}`);
-    if (localData) {
-      return JSON.parse(localData) as T;
-    }
-  } catch (error) {
-    console.error(`LocalStorage read error for ${key}:`, error);
-  }
-
-  // If we're in development or missing AWS credentials, don't try S3
-  if (isUsingLocalStorageFallback()) {
-    return null; // If not in localStorage and in development, return null
-  }
+  debugLog(`Fetching object from S3: ${key}`);
 
   try {
     const command = new GetObjectCommand({
@@ -88,38 +77,24 @@ export async function getObject<T>(key: string): Promise<T | null> {
       response.Body as StreamingBlobPayloadInputTypes
     );
 
-    // Save to localStorage for future quick access
-    try {
-      localStorage.setItem(`${LS_PREFIX}${key}`, bodyContents);
-    } catch (localError) {
-      console.warn("Failed to cache S3 data in localStorage:", localError);
-    }
-
+    debugLog(`Successfully retrieved from S3: ${key}`);
     return JSON.parse(bodyContents) as T;
   } catch (error) {
-    console.error(
-      `S3 getObject error for key ${key}, using localStorage fallback:`,
-      error
-    );
-    return null;
+    if (error.name === "NoSuchKey") {
+      debugLog(`Object not found in S3: ${key}`);
+      return null;
+    }
+
+    console.error(`S3 getObject error for key ${key}:`, error);
+    throw new Error(`Failed to retrieve data from S3: ${error.message}`);
   }
 }
 
 /**
- * Delete object from S3 bucket and localStorage
+ * Delete object from S3 bucket
  */
 export async function deleteObject(key: string): Promise<void> {
-  // Always delete from localStorage
-  try {
-    localStorage.removeItem(`${LS_PREFIX}${key}`);
-  } catch (error) {
-    console.error("LocalStorage delete error:", error);
-  }
-
-  // If we're in development or missing AWS credentials, don't try S3
-  if (isUsingLocalStorageFallback()) {
-    return; // Only delete from localStorage in development
-  }
+  debugLog(`Deleting object from S3: ${key}`);
 
   try {
     const command = new DeleteObjectCommand({
@@ -128,22 +103,18 @@ export async function deleteObject(key: string): Promise<void> {
     });
 
     await s3Client.send(command);
-    console.log(`Successfully deleted from S3: ${key}`);
+    debugLog(`Successfully deleted from S3: ${key}`);
   } catch (error) {
     console.error(`S3 deleteObject error for key ${key}:`, error);
-    // We've already deleted from localStorage, so no further action needed
+    throw new Error(`Failed to delete data from S3: ${error.message}`);
   }
 }
 
 /**
  * List objects in S3 bucket with specific prefix
- * or fallback to listing localStorage keys
  */
 export async function listObjects(prefix: string): Promise<{ Key?: string }[]> {
-  // If we're in development or missing AWS credentials, use localStorage
-  if (isUsingLocalStorageFallback()) {
-    return listLocalStorageObjects(prefix);
-  }
+  debugLog(`Listing objects from S3 with prefix: ${prefix}`);
 
   try {
     const command = new ListObjectsV2Command({
@@ -152,13 +123,13 @@ export async function listObjects(prefix: string): Promise<{ Key?: string }[]> {
     });
 
     const response = await s3Client.send(command);
+    debugLog(
+      `Found ${response.Contents?.length || 0} objects with prefix: ${prefix}`
+    );
     return response.Contents || [];
   } catch (error) {
-    console.error(
-      `S3 listObjects error for prefix ${prefix}, using localStorage fallback:`,
-      error
-    );
-    return listLocalStorageObjects(prefix);
+    console.error(`S3 listObjects error for prefix ${prefix}:`, error);
+    throw new Error(`Failed to list objects from S3: ${error.message}`);
   }
 }
 
@@ -174,42 +145,4 @@ async function streamToString(
   }
   const buffer = Buffer.concat(chunks);
   return buffer.toString("utf-8");
-}
-
-/**
- * List objects from localStorage that match a given prefix
- */
-function listLocalStorageObjects(prefix: string): { Key?: string }[] {
-  try {
-    const result: { Key?: string }[] = [];
-    const fullPrefix = `${LS_PREFIX}${prefix}`;
-
-    // Loop through localStorage
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key.startsWith(fullPrefix)) {
-        // Remove the LS_PREFIX to match S3 key format
-        const s3Key = key.substring(LS_PREFIX.length);
-        result.push({ Key: s3Key });
-      }
-    }
-
-    return result;
-  } catch (error) {
-    console.error("Error listing localStorage objects:", error);
-    return [];
-  }
-}
-
-/**
- * Check if we should use localStorage fallback
- */
-function isUsingLocalStorageFallback(): boolean {
-  const isDevelopment = process.env.NODE_ENV === "development";
-  const missingCredentials =
-    !process.env.NEXT_PUBLIC_AWS_ACCESS_KEY_ID ||
-    !process.env.NEXT_PUBLIC_AWS_SECRET_ACCESS_KEY;
-
-  // If in development or missing credentials, use localStorage
-  return isDevelopment || missingCredentials;
 }

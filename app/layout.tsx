@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import SideMenu from "@/components/sidemenu";
 import MenuHeader from "@/components/menuheader";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
   title: "War Boiz Clan Management",
@@ -38,6 +39,7 @@ export default function RootLayout({
               </ScrollArea>
             </div>
           </div>
+          <Toaster richColors />
         </ThemeProvider>
       </body>
     </html>

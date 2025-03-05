@@ -1,9 +1,11 @@
 import { fetchFromClashAPI } from "@/lib/clash-api";
 import { NextRequest, NextResponse } from "next/server";
 
+type tParams = Promise<{ tag: string }>;
+
 export async function GET(
   request: NextRequest,
-  { params }: { params: { tag: string } }
+  { params }: { params: tParams }
 ) {
   try {
     // Await params to fix the error

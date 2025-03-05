@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { saveMemberNote } from "@/lib/api";
 import { FileEdit } from "lucide-react";
+import { toast } from "sonner";
 
 interface MemberNoteDialogProps {
   memberId: string;
@@ -56,30 +57,29 @@ export function MemberNoteDialog({
         date: new Date().toISOString(),
       };
 
+      console.log("Saving note:", noteData);
+
       await saveMemberNote(noteData);
-      console.log("Note saved successfully:", noteId);
+
+      console.log("Note saved successfully.");
 
       // Clear form and close dialog
       setNote("");
       setOpen(false);
+
+      // Show success toast
+      toast({
+        title: "Note Added",
+        description: `Note for ${memberName} has been saved.`,
+      });
 
       // Refresh the member data
       await onNoteSaved();
     } catch (error) {
       console.error("Error saving note:", error);
 
-      // Even if there's an error with S3, the localStorage fallback should have worked
-      // Let's refresh the member data anyway
-      try {
-        await onNoteSaved();
-      } catch (refreshError) {
-        console.error(
-          "Error refreshing member data after note save:",
-          refreshError
-        );
-      }
-
-      // Optional: Show an error message to the user
+      // Show error toast
+      toast.error("Failed to save note. Please try again.");
     } finally {
       setIsSubmitting(false);
     }

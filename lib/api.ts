@@ -30,7 +30,7 @@ const API_BASE_URL = "https://api.clashofclans.com/v1";
 const CLAN_TAG = process.env.NEXT_PUBLIC_CLAN_TAG || "#GCVL29VJ";
 
 // S3 key prefixes
-const NOTES_PREFIX = "notes/";
+// const NOTES_PREFIX = "notes/";
 const STRIKES_PREFIX = "strikes/";
 const EFFICIENCY_PREFIX = "efficiency/";
 const BANNED_PREFIX = "banned/";
@@ -199,38 +199,45 @@ export async function getLeagueSeasonRankings(
 
 // S3 storage functions for notes and strikes
 
-// Notes
+// Notes - Updated for server-side API
 export async function getMemberNotes(): Promise<MemberNote[]> {
   try {
-    debugLog("Getting all member notes");
-    const objects: { Key?: string }[] = await listObjects(NOTES_PREFIX);
-    const notes: MemberNote[] = [];
+    debugLog("Getting all member notes via API");
+    const response = await fetch("/api/storage/notes");
 
-    for (const object of objects) {
-      if (object.Key) {
-        debugLog(`Getting note with key: ${object.Key}`);
-        const note = await getObject<MemberNote>(object.Key);
-        if (note) {
-          notes.push(note);
-        }
-      }
+    if (!response.ok) {
+      throw new Error(`Failed to fetch notes: ${response.status}`);
     }
 
+    const notes = await response.json();
+    debugLog(`Found ${notes.length} total notes`);
     return notes;
   } catch (error) {
     console.error("Error getting member notes:", error);
-    return [];
+    return []; // Return empty array on error
   }
 }
 
 export async function saveMemberNote(note: MemberNote): Promise<void> {
   try {
-    debugLog("Saving note: ", note);
-    debugLog("Notes prefix:", NOTES_PREFIX);
-    const key = `${NOTES_PREFIX}${note.id}`;
-    debugLog("Key:", key);
-    await putObject(key, note);
-    debugLog("Note saved successfully with key:", key);
+    debugLog("Saving note via API:", note);
+
+    const response = await fetch("/api/storage/notes", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(note),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(
+        `Failed to save note: ${errorData.error || response.status}`
+      );
+    }
+
+    debugLog("Note saved successfully");
   } catch (error) {
     console.error("Error saving member note:", error);
     throw error;
@@ -239,8 +246,20 @@ export async function saveMemberNote(note: MemberNote): Promise<void> {
 
 export async function deleteMemberNote(noteId: string): Promise<void> {
   try {
-    const key = `${NOTES_PREFIX}${noteId}`;
-    await deleteObject(key);
+    debugLog(`Deleting note ${noteId} via API`);
+
+    const response = await fetch(`/api/storage/notes?id=${noteId}`, {
+      method: "DELETE",
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(
+        `Failed to delete note: ${errorData.error || response.status}`
+      );
+    }
+
+    debugLog("Note deleted successfully");
   } catch (error) {
     console.error("Error deleting member note:", error);
     throw error;
@@ -251,15 +270,21 @@ export async function getMemberNotesByMemberId(
   memberId: string
 ): Promise<MemberNote[]> {
   try {
-    debugLog(`Getting notes for member ${memberId}`);
-    const allNotes = await getMemberNotes();
-    debugLog(`Found ${allNotes.length} total notes`);
-    const memberNotes = allNotes.filter((note) => note.memberId === memberId);
-    debugLog(`Found ${memberNotes.length} notes for member ${memberId}`);
-    return memberNotes;
+    debugLog(`Getting notes for member ${memberId} via API`);
+
+    const encodedMemberId = encodeURIComponent(memberId);
+    const response = await fetch(`/api/storage/notes/${encodedMemberId}`);
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch notes for member: ${response.status}`);
+    }
+
+    const notes = await response.json();
+    debugLog(`Found ${notes.length} notes for member ${memberId}`);
+    return notes;
   } catch (error) {
     console.error(`Error getting notes for member ${memberId}:`, error);
-    return [];
+    return []; // Return empty array on error
   }
 }
 
@@ -309,11 +334,16 @@ export async function getMemberStrikesByMemberId(
   memberId: string
 ): Promise<MemberStrike[]> {
   try {
+    debugLog(`Getting strikes for member ${memberId}`);
     const allStrikes = await getMemberStrikes();
-    return allStrikes.filter((strike) => strike.memberId === memberId);
+    const memberStrikes = allStrikes.filter(
+      (strike) => strike.memberId === memberId
+    );
+    debugLog(`Found ${memberStrikes.length} strikes for member ${memberId}`);
+    return memberStrikes;
   } catch (error) {
     console.error(`Error getting strikes for member ${memberId}:`, error);
-    return [];
+    return []; // Return empty array on error
   }
 }
 
