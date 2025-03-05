@@ -14,14 +14,16 @@ import { CalendarIcon, ArrowLeftIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { WarMember } from "@/types/clash";
 
-export default async function WarLeagueWarPage({
+const WarLeagueWarPage = async ({
   params,
 }: {
-  params: { tag: string };
-}) {
+  params: Promise<{ tag: string }>;
+}) => {
+  const slug = (await params).tag;
   // Decode the URL-encoded tag
-  const decodedTag = decodeURIComponent(params.tag);
+  const decodedTag = decodeURIComponent(slug);
   const warData = await getWarLeagueWar(decodedTag);
 
   if (!warData) {
@@ -172,7 +174,7 @@ export default async function WarLeagueWarPage({
 
         {/* Our Team Tab Content */}
         <TabsContent value="our-team" className="space-y-4 mt-4">
-          {warData.clan.members.map((member) => (
+          {warData.clan.members.map((member: WarMember) => (
             <Card key={member.tag}>
               <CardHeader className="py-3">
                 <div className="flex justify-between items-center">
@@ -245,7 +247,7 @@ export default async function WarLeagueWarPage({
 
         {/* Opponent Tab Content */}
         <TabsContent value="opponent" className="space-y-4 mt-4">
-          {warData.opponent.members.map((member) => (
+          {warData.opponent.members.map((member: WarMember) => (
             <Card key={member.tag}>
               <CardHeader className="py-3">
                 <div className="flex justify-between items-center">
@@ -359,4 +361,6 @@ export default async function WarLeagueWarPage({
       </Card>
     </div>
   );
-}
+};
+
+export default WarLeagueWarPage;

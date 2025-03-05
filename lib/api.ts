@@ -1,3 +1,5 @@
+"use server";
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   Clan,
@@ -68,6 +70,8 @@ async function fetchFromAPI(endpoint: string) {
       },
       next: { revalidate: 300 }, // Cache for 5 minutes
     });
+    const responseJson = await res.json();
+    console.log("Response from API:", responseJson);
 
     if (!res.ok) {
       console.error(`API error: ${res.status} - ${await res.text()}`);
@@ -79,7 +83,7 @@ async function fetchFromAPI(endpoint: string) {
       return MOCK_CLAN_DATA;
     }
 
-    return await res.json();
+    return await responseJson;
   } catch (error) {
     console.error("Error fetching from Clash API:", error);
 
@@ -383,7 +387,7 @@ export async function getMemberEfficiencies(): Promise<AttackEfficiency[]> {
 
     for (const object of objects) {
       if (object.Key) {
-        const efficiency = await getObject(object.Key);
+        const efficiency = (await getObject(object.Key)) as AttackEfficiency;
         if (efficiency) {
           efficiencies.push(efficiency);
         }
@@ -492,7 +496,7 @@ export async function getBannedMembers(): Promise<BannedMember[]> {
 
     for (const object of objects) {
       if (object.Key) {
-        const member = await getObject(object.Key);
+        const member = (await getObject(object.Key)) as BannedMember;
         if (member) {
           bannedList.push(member);
         }
@@ -543,16 +547,23 @@ export async function getCurrentWar(clanTag: string) {
   try {
     // Remove # from the tag if present before encoding
     const cleanTag = clanTag.startsWith("#") ? clanTag.substring(1) : clanTag;
-    const response = await fetch(`/api/clan/${cleanTag}/currentwar`, {
+    // Use an environment variable or fallback URL
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+    const url = new URL(`/api/clan/${cleanTag}/currentwar`, baseUrl);
+    console.log("Fetching current war from:", url.toString());
+    const response = await fetch(url.toString(), {
       method: "GET",
       headers: { "Content-Type": "application/json" },
     });
+
+    const responseJson = await response.json();
+    console.log("Response from API:", responseJson);
 
     if (!response.ok) {
       throw new Error(`Failed to fetch current war: ${response.status}`);
     }
 
-    return await response.json();
+    return responseJson;
   } catch (error) {
     console.error("Error in getCurrentWar:", error);
     throw error;
@@ -563,11 +574,21 @@ export async function getWarLeagueGroup(clanTag: string) {
   try {
     // Remove # from the tag if present before encoding
     const cleanTag = clanTag.startsWith("#") ? clanTag.substring(1) : clanTag;
-    const response = await fetch(
-      `/api/clan/${cleanTag}/currentwar/leaguegroup`
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+    const url = new URL(
+      `/api/clan/${cleanTag}/currentwar/leaguegroup`,
+      baseUrl
     );
+    console.log("Fetching current war from:", url.toString());
+    const response = await fetch(url.toString(), {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    const responseJson = await response.json();
+    console.log("Response from API:", responseJson);
     if (!response.ok) throw new Error("Failed to fetch war league group");
-    return response.json();
+    return responseJson;
   } catch (error) {
     console.error("Error in getWarLeagueGroup:", error);
     throw error;
@@ -578,7 +599,15 @@ export async function getWarLog(clanTag: string) {
   try {
     // Remove # from the tag if present before encoding
     const cleanTag = clanTag.startsWith("#") ? clanTag.substring(1) : clanTag;
-    const response = await fetch(`/api/clan/${cleanTag}/warlog`);
+
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+    const url = new URL(`/api/clan/${cleanTag}/warlog`, baseUrl);
+    console.log("Fetching current war from:", url.toString());
+    const response = await fetch(url.toString(), {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
+
     if (!response.ok) throw new Error("Failed to fetch war log");
     return response.json();
   } catch (error) {
@@ -588,9 +617,17 @@ export async function getWarLog(clanTag: string) {
 }
 
 export async function getWarLeagueWar(warTag: string) {
-  const response = await fetch(
-    `/api/clanwarleagues/wars/${encodeURIComponent(warTag)}`
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const url = new URL(
+    `/api/clanwarleagues/wars/${encodeURIComponent(warTag)}`,
+    baseUrl
   );
+  console.log("Fetching current war from:", url.toString());
+  const response = await fetch(url.toString(), {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+  });
+
   if (!response.ok) throw new Error("Failed to fetch war league war");
   return response.json();
 }

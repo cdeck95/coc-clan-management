@@ -18,15 +18,14 @@ import { Trophy, Medal } from "lucide-react";
 import Link from "next/link";
 import { WarLeague } from "@/types/clash";
 
-export default async function WarLeagueInfoPage({
-  searchParams,
+const WarLeagueInfoPage = async ({
+  params,
 }: {
-  searchParams: { id?: string };
-}) {
-  // Await searchParams to fix the error
-  const params = await searchParams;
+  params: Promise<{ id: string }>;
+}) => {
+  const slug = (await params).id;
   // Fetch all war leagues if no specific ID is provided
-  const leagueId = params.id ? parseInt(params.id) : null;
+  const leagueId = slug ? parseInt(slug) : null;
   let warLeagues: WarLeague[] = [];
   let selectedLeague: WarLeague | null = null;
 
@@ -128,4 +127,6 @@ export default async function WarLeagueInfoPage({
       )}
     </div>
   );
-}
+};
+
+export default WarLeagueInfoPage;

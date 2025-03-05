@@ -218,6 +218,7 @@ export const MOCK_WAR_DATA: CurrentWar = {
         townhallLevel: 14,
         opponentAttacks: 1,
         bestOpponentAttack: {
+          duration: 180,
           attackerTag: "#OPPONENT1",
           defenderTag: "#PLAYER1",
           stars: 2,
@@ -231,6 +232,7 @@ export const MOCK_WAR_DATA: CurrentWar = {
             stars: 3,
             destructionPercentage: 100,
             order: 1,
+            duration: 180,
           },
           {
             attackerTag: "#PLAYER1",
@@ -238,6 +240,7 @@ export const MOCK_WAR_DATA: CurrentWar = {
             stars: 2,
             destructionPercentage: 85,
             order: 15,
+            duration: 180,
           },
         ],
       },
@@ -248,6 +251,7 @@ export const MOCK_WAR_DATA: CurrentWar = {
         townhallLevel: 13,
         opponentAttacks: 1,
         bestOpponentAttack: {
+          duration: 180,
           attackerTag: "#OPPONENT3",
           defenderTag: "#PLAYER2",
           stars: 2,
@@ -261,6 +265,7 @@ export const MOCK_WAR_DATA: CurrentWar = {
             stars: 2,
             destructionPercentage: 88,
             order: 5,
+            duration: 180,
           },
         ],
       },
@@ -277,6 +282,7 @@ export const MOCK_WAR_DATA: CurrentWar = {
             stars: 3,
             destructionPercentage: 100,
             order: 7,
+            duration: 180,
           },
           {
             attackerTag: "#PLAYER3",
@@ -284,6 +290,7 @@ export const MOCK_WAR_DATA: CurrentWar = {
             stars: 2,
             destructionPercentage: 92,
             order: 18,
+            duration: 180,
           },
         ],
       },
@@ -317,6 +324,7 @@ export const MOCK_WAR_DATA: CurrentWar = {
           stars: 3,
           destructionPercentage: 100,
           order: 1,
+          duration: 180,
         },
         attacks: [
           {
@@ -325,6 +333,7 @@ export const MOCK_WAR_DATA: CurrentWar = {
             stars: 2,
             destructionPercentage: 80,
             order: 2,
+            duration: 180,
           },
           {
             attackerTag: "#OPPONENT1",
@@ -332,6 +341,7 @@ export const MOCK_WAR_DATA: CurrentWar = {
             stars: 3,
             destructionPercentage: 100,
             order: 10,
+            duration: 180,
           },
         ],
       },
@@ -347,6 +357,7 @@ export const MOCK_WAR_DATA: CurrentWar = {
           stars: 2,
           destructionPercentage: 85,
           order: 15,
+          duration: 180,
         },
         attacks: [
           {
@@ -355,6 +366,7 @@ export const MOCK_WAR_DATA: CurrentWar = {
             stars: 3,
             destructionPercentage: 100,
             order: 4,
+            duration: 180,
           },
         ],
       },
@@ -370,6 +382,7 @@ export const MOCK_WAR_DATA: CurrentWar = {
           stars: 2,
           destructionPercentage: 88,
           order: 5,
+          duration: 180,
         },
         attacks: [
           {
@@ -378,6 +391,7 @@ export const MOCK_WAR_DATA: CurrentWar = {
             stars: 2,
             destructionPercentage: 90,
             order: 3,
+            duration: 180,
           },
         ],
       },

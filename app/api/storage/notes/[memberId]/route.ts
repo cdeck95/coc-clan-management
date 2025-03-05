@@ -20,13 +20,16 @@ const s3Client = new S3Client({
 
 const NOTES_PREFIX = "notes/";
 
+type tParams = Promise<{ memberId: string }>;
+
 // GET notes for a specific member
 export async function GET(
   request: NextRequest,
-  { params }: { params: { memberId: string } }
+  { params }: { params: tParams }
 ) {
   try {
-    const memberId = params.memberId;
+    // Await params to fix the error
+    const memberId = (await params).memberId;
 
     // First get all notes
     const command = new ListObjectsV2Command({
@@ -69,9 +72,9 @@ export async function GET(
 
     return NextResponse.json(memberNotes);
   } catch (error) {
-    console.error(`Error fetching notes for member ${params.memberId}:`, error);
+    console.error(`Error fetching notes for member`, error);
     return NextResponse.json(
-      { error: `Failed to fetch notes for member ${params.memberId}` },
+      { error: `Failed to fetch notes for member` },
       { status: 500 }
     );
   }

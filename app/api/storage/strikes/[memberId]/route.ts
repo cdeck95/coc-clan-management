@@ -20,14 +20,16 @@ const s3Client = new S3Client({
 
 const STRIKES_PREFIX = "strikes/";
 
+type tParams = Promise<{ memberId: string }>;
+
 // GET strikes for a specific member
 export async function GET(
   request: NextRequest,
-  { params }: { params: { memberId: string } }
+  { params }: { params: tParams }
 ) {
   try {
-    const memberId = params.memberId;
-
+    // Await params to fix the error
+    const memberId = (await params).memberId;
     // First get all strikes
     const command = new ListObjectsV2Command({
       Bucket: bucketName,
@@ -71,12 +73,9 @@ export async function GET(
 
     return NextResponse.json(memberStrikes);
   } catch (error) {
-    console.error(
-      `Error fetching strikes for member ${params.memberId}:`,
-      error
-    );
+    console.error(`Error fetching strikes for member`, error);
     return NextResponse.json(
-      { error: `Failed to fetch strikes for member ${params.memberId}` },
+      { error: `Failed to fetch strikes for member` },
       { status: 500 }
     );
   }

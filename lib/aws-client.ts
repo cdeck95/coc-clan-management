@@ -54,7 +54,7 @@ export async function putObject<T>(key: string, data: T): Promise<void> {
 
     await s3Client.send(command);
     debugLog(`Successfully saved to S3: ${key}`);
-  } catch (error) {
+  } catch (error: any) {
     console.error(`S3 putObject error for key ${key}:`, error);
     throw new Error(`Failed to save data to S3: ${error.message}`);
   }
@@ -79,7 +79,7 @@ export async function getObject<T>(key: string): Promise<T | null> {
 
     debugLog(`Successfully retrieved from S3: ${key}`);
     return JSON.parse(bodyContents) as T;
-  } catch (error) {
+  } catch (error: any) {
     if (error.name === "NoSuchKey") {
       debugLog(`Object not found in S3: ${key}`);
       return null;
@@ -104,7 +104,7 @@ export async function deleteObject(key: string): Promise<void> {
 
     await s3Client.send(command);
     debugLog(`Successfully deleted from S3: ${key}`);
-  } catch (error) {
+  } catch (error: any) {
     console.error(`S3 deleteObject error for key ${key}:`, error);
     throw new Error(`Failed to delete data from S3: ${error.message}`);
   }
@@ -127,7 +127,7 @@ export async function listObjects(prefix: string): Promise<{ Key?: string }[]> {
       `Found ${response.Contents?.length || 0} objects with prefix: ${prefix}`
     );
     return response.Contents || [];
-  } catch (error) {
+  } catch (error: any) {
     console.error(`S3 listObjects error for prefix ${prefix}:`, error);
     throw new Error(`Failed to list objects from S3: ${error.message}`);
   }
@@ -140,9 +140,19 @@ async function streamToString(
   stream: StreamingBlobPayloadInputTypes
 ): Promise<string> {
   const chunks: Uint8Array[] = [];
-  for await (const chunk of stream) {
+  for await (const chunk of stream as unknown as AsyncIterable<Uint8Array>) {
     chunks.push(chunk);
   }
-  const buffer = Buffer.concat(chunks);
-  return buffer.toString("utf-8");
+  return Buffer.concat(chunks).toString("utf-8");
 }
+
+// async function streamToString(
+//   stream: StreamingBlobPayloadInputTypes
+// ): Promise<string> {
+//   const chunks: Uint8Array[] = [];
+//   for await (const chunk of stream) {
+//     chunks.push(chunk);
+//   }
+//   const buffer = Buffer.concat(chunks);
+//   return buffer.toString("utf-8");
+// }

@@ -4,16 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { SidebarNav } from "@/components/sidemenu";
 import { usePathname } from "next/navigation";
-import {
-  Home,
-  Users,
-  Shield,
-  Menu,
-  Swords,
-  Ban,
-  BarChart3,
-  Trophy,
-} from "lucide-react";
+import { Home, Users, Shield, Menu, Swords, Ban, Trophy } from "lucide-react";
 import { ModeToggle } from "./ui/modetoggle";
 
 export default function MenuHeader() {
@@ -55,12 +46,6 @@ export default function MenuHeader() {
       href: "/banned",
       icon: <Ban className="h-4 w-4" />,
       variant: path.startsWith("/banned") ? "default" : "ghost",
-    },
-    {
-      title: "Efficiency",
-      href: "/efficiency",
-      icon: <BarChart3 className="h-4 w-4" />,
-      variant: path.startsWith("/efficiency") ? "default" : "ghost",
     },
   ];
 

@@ -5,15 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  Home,
-  Users,
-  Shield,
-  Swords,
-  Ban,
-  BarChart3,
-  Trophy,
-} from "lucide-react";
+import { Home, Users, Shield, Swords, Ban, Trophy } from "lucide-react";
 
 interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
   links: {
@@ -91,12 +83,6 @@ export default function SideMenu() {
       href: "/banned",
       icon: <Ban className="h-4 w-4" />,
       variant: path.startsWith("/banned") ? "default" : "ghost",
-    },
-    {
-      title: "Efficiency",
-      href: "/efficiency",
-      icon: <BarChart3 className="h-4 w-4" />,
-      variant: path.startsWith("/efficiency") ? "default" : "ghost",
     },
   ];
 

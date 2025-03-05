@@ -68,10 +68,7 @@ export function MemberNoteDialog({
       setOpen(false);
 
       // Show success toast
-      toast({
-        title: "Note Added",
-        description: `Note for ${memberName} has been saved.`,
-      });
+      toast.success(`Note for ${memberName} has been saved.`);
 
       // Refresh the member data
       await onNoteSaved();
