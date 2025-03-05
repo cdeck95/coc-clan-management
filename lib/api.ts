@@ -30,8 +30,6 @@ const API_BASE_URL = "https://api.clashofclans.com/v1";
 const CLAN_TAG = process.env.NEXT_PUBLIC_CLAN_TAG || "#GCVL29VJ";
 
 // S3 key prefixes
-// const NOTES_PREFIX = "notes/";
-const STRIKES_PREFIX = "strikes/";
 const EFFICIENCY_PREFIX = "efficiency/";
 const BANNED_PREFIX = "banned/";
 
@@ -288,32 +286,45 @@ export async function getMemberNotesByMemberId(
   }
 }
 
-// Strikes
+// Strikes - Updated for server-side API
 export async function getMemberStrikes(): Promise<MemberStrike[]> {
   try {
-    const objects: { Key?: string }[] = await listObjects(STRIKES_PREFIX);
-    const strikes: MemberStrike[] = [];
+    debugLog("Getting all member strikes via API");
+    const response = await fetch("/api/storage/strikes");
 
-    for (const object of objects) {
-      if (object.Key) {
-        const strike = await getObject(object.Key);
-        if (strike) {
-          strikes.push(strike);
-        }
-      }
+    if (!response.ok) {
+      throw new Error(`Failed to fetch strikes: ${response.status}`);
     }
 
+    const strikes = await response.json();
+    debugLog(`Found ${strikes.length} total strikes`);
     return strikes;
   } catch (error) {
     console.error("Error getting member strikes:", error);
-    return [];
+    return []; // Return empty array on error
   }
 }
 
 export async function saveMemberStrike(strike: MemberStrike): Promise<void> {
   try {
-    const key = `${STRIKES_PREFIX}${strike.id}`;
-    await putObject(key, strike);
+    debugLog("Saving strike via API:", strike);
+
+    const response = await fetch("/api/storage/strikes", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(strike),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(
+        `Failed to save strike: ${errorData.error || response.status}`
+      );
+    }
+
+    debugLog("Strike saved successfully");
   } catch (error) {
     console.error("Error saving member strike:", error);
     throw error;
@@ -322,8 +333,20 @@ export async function saveMemberStrike(strike: MemberStrike): Promise<void> {
 
 export async function deleteMemberStrike(strikeId: string): Promise<void> {
   try {
-    const key = `${STRIKES_PREFIX}${strikeId}`;
-    await deleteObject(key);
+    debugLog(`Deleting strike ${strikeId} via API`);
+
+    const response = await fetch(`/api/storage/strikes?id=${strikeId}`, {
+      method: "DELETE",
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(
+        `Failed to delete strike: ${errorData.error || response.status}`
+      );
+    }
+
+    debugLog("Strike deleted successfully");
   } catch (error) {
     console.error("Error deleting member strike:", error);
     throw error;
@@ -334,13 +357,18 @@ export async function getMemberStrikesByMemberId(
   memberId: string
 ): Promise<MemberStrike[]> {
   try {
-    debugLog(`Getting strikes for member ${memberId}`);
-    const allStrikes = await getMemberStrikes();
-    const memberStrikes = allStrikes.filter(
-      (strike) => strike.memberId === memberId
-    );
-    debugLog(`Found ${memberStrikes.length} strikes for member ${memberId}`);
-    return memberStrikes;
+    debugLog(`Getting strikes for member ${memberId} via API`);
+
+    const encodedMemberId = encodeURIComponent(memberId);
+    const response = await fetch(`/api/storage/strikes/${encodedMemberId}`);
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch strikes for member: ${response.status}`);
+    }
+
+    const strikes = await response.json();
+    debugLog(`Found ${strikes.length} strikes for member ${memberId}`);
+    return strikes;
   } catch (error) {
     console.error(`Error getting strikes for member ${memberId}:`, error);
     return []; // Return empty array on error

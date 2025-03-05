@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ClanMember, MemberNote, MemberStrike } from "@/types/clash";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "./ui/button";
@@ -42,6 +42,13 @@ export function MembersList({ members }: MembersListProps) {
     Record<string, MemberStrike[]>
   >({});
   const [loadingData, setLoadingData] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    // load all member data when component mounts
+    members.forEach((member) => {
+      loadMemberData(member.tag);
+    });
+  }, []);
 
   const handleToggleExpand = async (member: ClanMember) => {
     const newExpanded = { ...expanded };

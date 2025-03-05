@@ -22,6 +22,7 @@ import {
 } from "@/lib/api";
 import { Trash2 } from "lucide-react";
 import LoadingSpinner from "./ui/loading-spinner";
+import { MemberStatusIndicators } from "@/components/member-status-indicators";
 
 interface MemberCardProps {
   member: ClanMember;
@@ -83,6 +84,10 @@ export function MemberCard({ member }: MemberCardProps) {
         <Badge className={getRoleColor(member.role)}>{member.role}</Badge>
       </CardHeader>
       <CardContent>
+        <MemberStatusIndicators
+          hasNotes={notes.length > 0}
+          hasStrikes={strikes.length > 0}
+        />
         <div className="grid grid-cols-2 gap-2">
           <div className="text-sm">Level: {member.expLevel}</div>
           <div className="text-sm">Trophies: {member.trophies}</div>

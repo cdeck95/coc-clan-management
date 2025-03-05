@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { saveMemberStrike } from "@/lib/api";
 import { AlertTriangle } from "lucide-react";
+import { toast } from "sonner";
 
 interface MemberStrikeDialogProps {
   memberId: string;
@@ -56,28 +57,26 @@ export function MemberStrikeDialog({
         date: new Date().toISOString(),
       };
 
+      console.log("Saving strike:", strikeData);
+
       await saveMemberStrike(strikeData);
+
       console.log("Strike saved successfully:", strikeId);
 
       // Clear form and close dialog
       setReason("");
       setOpen(false);
 
+      // Show success toast
+      toast.success(`Strike for ${memberName} has been recorded.`);
+
       // Refresh the member data
       await onStrikeSaved();
     } catch (error) {
       console.error("Error saving strike:", error);
 
-      // Even if there's an error with S3, the localStorage fallback should have worked
-      // Let's refresh the member data anyway
-      try {
-        await onStrikeSaved();
-      } catch (refreshError) {
-        console.error(
-          "Error refreshing member data after strike save:",
-          refreshError
-        );
-      }
+      // Show error toast
+      toast.error("Failed to save strike. Please try again.");
     } finally {
       setIsSubmitting(false);
     }

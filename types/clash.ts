@@ -70,7 +70,7 @@ export interface ClanMember {
   previousClanRank: number;
   donations: number;
   donationsReceived: number;
-  townhallLevel?: number; // Add this property if not already present
+  townHallLevel?: number; // Add this property if not already present
 }
 
 // Define WarAttack first to avoid reference issues
