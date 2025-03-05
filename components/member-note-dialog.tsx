@@ -11,70 +11,119 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { MemberNote } from "@/types/clash";
 import { saveMemberNote } from "@/lib/api";
-import { v4 as uuidv4 } from "uuid";
+import { FileEdit } from "lucide-react";
 
 interface MemberNoteDialogProps {
   memberId: string;
   memberName: string;
-  existingNote?: MemberNote;
-  onNoteSaved: () => void;
+  onNoteSaved: () => Promise<void>;
+  buttonVariant?:
+    | "default"
+    | "destructive"
+    | "outline"
+    | "secondary"
+    | "ghost"
+    | "link";
+  buttonSize?: "default" | "sm" | "lg" | "icon";
+  buttonLabel?: string;
 }
 
 export function MemberNoteDialog({
   memberId,
   memberName,
-  existingNote,
   onNoteSaved,
+  buttonVariant = "default",
+  buttonSize = "default",
+  buttonLabel,
 }: MemberNoteDialogProps) {
+  const [note, setNote] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [open, setOpen] = useState(false);
-  const [note, setNote] = useState(existingNote?.note || "");
 
-  const handleSaveNote = () => {
-    if (!note.trim()) return;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
 
-    const noteData: MemberNote = {
-      id: existingNote?.id || uuidv4(),
-      memberId,
-      note,
-      date: new Date().toISOString(),
-    };
+    try {
+      const noteId = `note_${Date.now()}`;
+      const noteData = {
+        id: noteId,
+        memberId,
+        note,
+        date: new Date().toISOString(),
+      };
 
-    saveMemberNote(noteData);
-    setOpen(false);
-    onNoteSaved();
+      await saveMemberNote(noteData);
+      console.log("Note saved successfully:", noteId);
+
+      // Clear form and close dialog
+      setNote("");
+      setOpen(false);
+
+      // Refresh the member data
+      await onNoteSaved();
+    } catch (error) {
+      console.error("Error saving note:", error);
+
+      // Even if there's an error with S3, the localStorage fallback should have worked
+      // Let's refresh the member data anyway
+      try {
+        await onNoteSaved();
+      } catch (refreshError) {
+        console.error(
+          "Error refreshing member data after note save:",
+          refreshError
+        );
+      }
+
+      // Optional: Show an error message to the user
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant={existingNote ? "outline" : "default"} size="sm">
-          {existingNote ? "Edit Note" : "Add Note"}
+        <Button variant={buttonVariant} size={buttonSize}>
+          {buttonLabel ? (
+            buttonLabel
+          ) : (
+            <>
+              <FileEdit className="mr-2 h-4 w-4" /> Add Note
+            </>
+          )}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>
-            {existingNote ? "Edit note" : "Add note"} for {memberName}
-          </DialogTitle>
-          <DialogDescription>
-            Enter your notes about this clan member. This is visible only to
-            you.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <Textarea
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            placeholder="Enter notes about this clan member..."
-            className="h-32"
-          />
-        </div>
-        <DialogFooter>
-          <Button onClick={handleSaveNote}>Save Note</Button>
-        </DialogFooter>
+        <form onSubmit={handleSubmit}>
+          <DialogHeader>
+            <DialogTitle>Add Note for {memberName}</DialogTitle>
+            <DialogDescription>
+              Create a note that is visible to clan leadership.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="note">Note</Label>
+              <Textarea
+                id="note"
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="Enter your note here..."
+                required
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Saving..." : "Save Note"}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

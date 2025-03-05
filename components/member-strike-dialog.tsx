@@ -12,76 +12,116 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { MemberStrike } from "@/types/clash";
+import { Label } from "@/components/ui/label";
 import { saveMemberStrike } from "@/lib/api";
-import { v4 as uuidv4 } from "uuid";
+import { AlertTriangle } from "lucide-react";
 
 interface MemberStrikeDialogProps {
   memberId: string;
   memberName: string;
-  existingStrike?: MemberStrike;
-  onStrikeSaved: () => void;
+  onStrikeSaved: () => Promise<void>;
+  buttonVariant?:
+    | "default"
+    | "destructive"
+    | "outline"
+    | "secondary"
+    | "ghost"
+    | "link";
+  buttonSize?: "default" | "sm" | "lg" | "icon";
+  buttonLabel?: string;
 }
 
 export function MemberStrikeDialog({
   memberId,
   memberName,
-  existingStrike,
   onStrikeSaved,
+  buttonVariant = "destructive",
+  buttonSize = "default",
+  buttonLabel,
 }: MemberStrikeDialogProps) {
+  const [reason, setReason] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [open, setOpen] = useState(false);
-  const [reason, setReason] = useState(existingStrike?.reason || "");
 
-  const handleSaveStrike = () => {
-    if (!reason.trim()) return;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
 
-    const strikeData: MemberStrike = {
-      id: existingStrike?.id || uuidv4(),
-      memberId,
-      reason,
-      date: new Date().toISOString(),
-    };
+    try {
+      const strikeId = `strike_${Date.now()}`;
+      const strikeData = {
+        id: strikeId,
+        memberId,
+        reason,
+        date: new Date().toISOString(),
+      };
 
-    saveMemberStrike(strikeData);
-    setOpen(false);
-    onStrikeSaved();
+      await saveMemberStrike(strikeData);
+      console.log("Strike saved successfully:", strikeId);
+
+      // Clear form and close dialog
+      setReason("");
+      setOpen(false);
+
+      // Refresh the member data
+      await onStrikeSaved();
+    } catch (error) {
+      console.error("Error saving strike:", error);
+
+      // Even if there's an error with S3, the localStorage fallback should have worked
+      // Let's refresh the member data anyway
+      try {
+        await onStrikeSaved();
+      } catch (refreshError) {
+        console.error(
+          "Error refreshing member data after strike save:",
+          refreshError
+        );
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="destructive" size="sm">
-          {existingStrike ? "Edit Strike" : "Add Strike"}
+        <Button variant={buttonVariant} size={buttonSize}>
+          {buttonLabel ? (
+            buttonLabel
+          ) : (
+            <>
+              <AlertTriangle className="mr-2 h-4 w-4" /> Add Strike
+            </>
+          )}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>
-            {existingStrike ? "Edit strike" : "Add strike"} for {memberName}
-          </DialogTitle>
-          <DialogDescription>
-            Record a strike against this clan member for rule violations.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <label htmlFor="reason" className="text-right">
-              Reason
-            </label>
-            <Input
-              id="reason"
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              className="col-span-3"
-              placeholder="Missed war attack, etc."
-            />
+        <form onSubmit={handleSubmit}>
+          <DialogHeader>
+            <DialogTitle>Add Strike for {memberName}</DialogTitle>
+            <DialogDescription>
+              Create a strike record for rule violations.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="reason">Reason</Label>
+              <Input
+                id="reason"
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                placeholder="Reason for the strike"
+                required
+              />
+            </div>
           </div>
-        </div>
-        <DialogFooter>
-          <Button variant="destructive" onClick={handleSaveStrike}>
-            Save Strike
-          </Button>
-        </DialogFooter>
+          <DialogFooter>
+            <Button type="submit" variant="destructive" disabled={isSubmitting}>
+              {isSubmitting ? "Saving..." : "Add Strike"}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

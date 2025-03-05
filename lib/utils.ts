@@ -6,25 +6,21 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function getRoleColor(role: string) {
+export function getRoleColor(role: string): string {
   switch (role.toLowerCase()) {
     case "leader":
-      return "bg-red-500 text-white hover:bg-red-600";
+      return "bg-red-500 text-white";
     case "coleader":
-      return "bg-orange-500 text-white hover:bg-orange-600";
+      return "bg-orange-500 text-white";
     case "admin":
-      return "bg-orange-500 text-white hover:bg-orange-600";
-    case "elder":
-      return "bg-yellow-500 text-black hover:bg-yellow-600";
+      return "bg-blue-500 text-white";
     default:
-      return "bg-gray-500 text-white hover:bg-gray-600";
+      return "bg-gray-500 text-white";
   }
 }
 
 export function getDonationRatio(donated: number, received: number): number {
-  if (received === 0) {
-    return donated > 0 ? Infinity : 0;
-  }
+  if (received === 0) return donated > 0 ? Infinity : 1;
   return donated / received;
 }
 

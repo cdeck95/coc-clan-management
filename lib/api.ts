@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   Clan,
   CurrentWar,
@@ -33,6 +34,14 @@ const NOTES_PREFIX = "notes/";
 const STRIKES_PREFIX = "strikes/";
 const EFFICIENCY_PREFIX = "efficiency/";
 const BANNED_PREFIX = "banned/";
+
+// Helper for debug logging
+const DEBUG = true;
+function debugLog(...args: any[]) {
+  if (DEBUG) {
+    console.log(...args);
+  }
+}
 
 // Helper function to encode special characters in tags
 const encodeTag = (tag: string) => {
@@ -89,11 +98,6 @@ export async function getClanInfo(): Promise<Clan> {
   return fetchFromAPI(`/clans/${encodedTag}`);
 }
 
-export async function getCurrentWar(): Promise<CurrentWar> {
-  const encodedTag = encodeTag(CLAN_TAG);
-  return fetchFromAPI(`/clans/${encodedTag}/currentwar`);
-}
-
 // New enhanced War League API functions
 export async function getCurrentWarLeague(): Promise<ClanWarLeagueGroup> {
   const encodedTag = encodeTag(CLAN_TAG);
@@ -107,18 +111,18 @@ export async function getCurrentWarLeague(): Promise<ClanWarLeagueGroup> {
   }
 }
 
-export async function getWarLeagueWar(
-  warTag: string
-): Promise<ClanWarLeagueWar> {
-  try {
-    const encodedWarTag = encodeTag(warTag);
-    const data = await fetchFromAPI(`/clanwarleagues/wars/${encodedWarTag}`);
-    return data;
-  } catch (error) {
-    console.error(`Error fetching CWL war data for tag ${warTag}:`, error);
-    return MOCK_WAR_DATA as ClanWarLeagueWar;
-  }
-}
+// export async function getWarLeagueWar(
+//   warTag: string
+// ): Promise<ClanWarLeagueWar> {
+//   try {
+//     const encodedWarTag = encodeTag(warTag);
+//     const data = await fetchFromAPI(`/clanwarleagues/wars/${encodedWarTag}`);
+//     return data;
+//   } catch (error) {
+//     console.error(`Error fetching CWL war data for tag ${warTag}:`, error);
+//     return MOCK_WAR_DATA as ClanWarLeagueWar;
+//   }
+// }
 
 // Additional War League API functions
 export async function listWarLeagues(): Promise<WarLeague[]> {
@@ -198,12 +202,14 @@ export async function getLeagueSeasonRankings(
 // Notes
 export async function getMemberNotes(): Promise<MemberNote[]> {
   try {
-    const objects = await listObjects(NOTES_PREFIX);
+    debugLog("Getting all member notes");
+    const objects: { Key?: string }[] = await listObjects(NOTES_PREFIX);
     const notes: MemberNote[] = [];
 
     for (const object of objects) {
       if (object.Key) {
-        const note = await getObject(object.Key);
+        debugLog(`Getting note with key: ${object.Key}`);
+        const note = await getObject<MemberNote>(object.Key);
         if (note) {
           notes.push(note);
         }
@@ -219,8 +225,12 @@ export async function getMemberNotes(): Promise<MemberNote[]> {
 
 export async function saveMemberNote(note: MemberNote): Promise<void> {
   try {
+    debugLog("Saving note: ", note);
+    debugLog("Notes prefix:", NOTES_PREFIX);
     const key = `${NOTES_PREFIX}${note.id}`;
+    debugLog("Key:", key);
     await putObject(key, note);
+    debugLog("Note saved successfully with key:", key);
   } catch (error) {
     console.error("Error saving member note:", error);
     throw error;
@@ -241,8 +251,12 @@ export async function getMemberNotesByMemberId(
   memberId: string
 ): Promise<MemberNote[]> {
   try {
+    debugLog(`Getting notes for member ${memberId}`);
     const allNotes = await getMemberNotes();
-    return allNotes.filter((note) => note.memberId === memberId);
+    debugLog(`Found ${allNotes.length} total notes`);
+    const memberNotes = allNotes.filter((note) => note.memberId === memberId);
+    debugLog(`Found ${memberNotes.length} notes for member ${memberId}`);
+    return memberNotes;
   } catch (error) {
     console.error(`Error getting notes for member ${memberId}:`, error);
     return [];
@@ -252,7 +266,7 @@ export async function getMemberNotesByMemberId(
 // Strikes
 export async function getMemberStrikes(): Promise<MemberStrike[]> {
   try {
-    const objects = await listObjects(STRIKES_PREFIX);
+    const objects: { Key?: string }[] = await listObjects(STRIKES_PREFIX);
     const strikes: MemberStrike[] = [];
 
     for (const object of objects) {
@@ -306,7 +320,7 @@ export async function getMemberStrikesByMemberId(
 // Attack Efficiency tracking functions
 export async function getMemberEfficiencies(): Promise<AttackEfficiency[]> {
   try {
-    const objects = await listObjects(EFFICIENCY_PREFIX);
+    const objects: { Key?: string }[] = await listObjects(EFFICIENCY_PREFIX);
     const efficiencies: AttackEfficiency[] = [];
 
     for (const object of objects) {
@@ -415,7 +429,7 @@ export async function updateEfficiencyFromWar(
 // Banned Members tracking
 export async function getBannedMembers(): Promise<BannedMember[]> {
   try {
-    const objects = await listObjects(BANNED_PREFIX);
+    const objects: { Key?: string }[] = await listObjects(BANNED_PREFIX);
     const bannedList: BannedMember[] = [];
 
     for (const object of objects) {
@@ -464,4 +478,61 @@ export async function isMemberBanned(
     console.error(`Error checking if member ${tag} is banned:`, error);
     return null;
   }
+}
+
+// Clan War API functions
+export async function getCurrentWar(clanTag: string) {
+  try {
+    // Remove # from the tag if present before encoding
+    const cleanTag = clanTag.startsWith("#") ? clanTag.substring(1) : clanTag;
+    const response = await fetch(`/api/clan/${cleanTag}/currentwar`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch current war: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error in getCurrentWar:", error);
+    throw error;
+  }
+}
+
+export async function getWarLeagueGroup(clanTag: string) {
+  try {
+    // Remove # from the tag if present before encoding
+    const cleanTag = clanTag.startsWith("#") ? clanTag.substring(1) : clanTag;
+    const response = await fetch(
+      `/api/clan/${cleanTag}/currentwar/leaguegroup`
+    );
+    if (!response.ok) throw new Error("Failed to fetch war league group");
+    return response.json();
+  } catch (error) {
+    console.error("Error in getWarLeagueGroup:", error);
+    throw error;
+  }
+}
+
+export async function getWarLog(clanTag: string) {
+  try {
+    // Remove # from the tag if present before encoding
+    const cleanTag = clanTag.startsWith("#") ? clanTag.substring(1) : clanTag;
+    const response = await fetch(`/api/clan/${cleanTag}/warlog`);
+    if (!response.ok) throw new Error("Failed to fetch war log");
+    return response.json();
+  } catch (error) {
+    console.error("Error in getWarLog:", error);
+    throw error;
+  }
+}
+
+export async function getWarLeagueWar(warTag: string) {
+  const response = await fetch(
+    `/api/clanwarleagues/wars/${encodeURIComponent(warTag)}`
+  );
+  if (!response.ok) throw new Error("Failed to fetch war league war");
+  return response.json();
 }

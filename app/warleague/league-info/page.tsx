@@ -23,8 +23,10 @@ export default async function WarLeagueInfoPage({
 }: {
   searchParams: { id?: string };
 }) {
+  // Await searchParams to fix the error
+  const params = await searchParams;
   // Fetch all war leagues if no specific ID is provided
-  const leagueId = searchParams.id ? parseInt(searchParams.id) : null;
+  const leagueId = params.id ? parseInt(params.id) : null;
   let warLeagues: WarLeague[] = [];
   let selectedLeague: WarLeague | null = null;
 

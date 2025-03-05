@@ -1,3 +1,10 @@
+// Define BadgeUrls interface that was missing
+export interface BadgeUrls {
+  small: string;
+  medium: string;
+  large: string;
+}
+
 export interface Clan {
   tag: string;
   name: string;
@@ -9,11 +16,7 @@ export interface Clan {
     isCountry: boolean;
     countryCode: string;
   };
-  badgeUrls: {
-    small: string;
-    large: string;
-    medium: string;
-  };
+  badgeUrls: BadgeUrls;
   clanLevel: number;
   clanPoints: number;
   clanVersusPoints: number;
@@ -67,6 +70,38 @@ export interface ClanMember {
   previousClanRank: number;
   donations: number;
   donationsReceived: number;
+  townhallLevel?: number; // Add this property if not already present
+}
+
+// Define WarAttack first to avoid reference issues
+export interface WarAttack {
+  attackerTag: string;
+  defenderTag: string;
+  stars: number;
+  destructionPercentage: number;
+  order: number;
+  duration: number;
+}
+
+export interface WarMember {
+  tag: string;
+  name: string;
+  mapPosition: number;
+  townhallLevel: number;
+  opponentAttacks: number;
+  bestOpponentAttack?: WarAttack;
+  attacks?: WarAttack[];
+}
+
+export interface WarClan {
+  tag: string;
+  name: string;
+  badgeUrls: BadgeUrls;
+  clanLevel: number;
+  attacks: number;
+  stars: number;
+  destructionPercentage: number;
+  members: WarMember[];
 }
 
 export interface CurrentWar {
@@ -77,43 +112,6 @@ export interface CurrentWar {
   endTime: string;
   clan: WarClan;
   opponent: WarClan;
-}
-
-export interface WarClan {
-  tag: string;
-  name: string;
-  badgeUrls: {
-    small: string;
-    large: string;
-    medium: string;
-  };
-  clanLevel: number;
-  attacks: number;
-  stars: number;
-  destructionPercentage: number;
-  members: WarMember[];
-}
-
-export interface WarMember {
-  tag: string;
-  name: string;
-  mapPosition: number;
-  townhallLevel: number;
-  opponentAttacks: number;
-  bestOpponentAttack?: {
-    attackerTag: string;
-    defenderTag: string;
-    stars: number;
-    destructionPercentage: number;
-    order: number;
-  };
-  attacks?: {
-    attackerTag: string;
-    defenderTag: string;
-    stars: number;
-    destructionPercentage: number;
-    order: number;
-  }[];
 }
 
 export interface MemberNote {
@@ -156,81 +154,6 @@ export interface ClanWarLeagueGroup {
   season: string;
   clans: ClanWarLeagueClan[];
   rounds: ClanWarLeagueRound[];
-}
-
-export interface ClanWarLeagueClan {
-  tag: string;
-  name: string;
-  clanLevel: number;
-  badgeUrls: {
-    small: string;
-    medium: string;
-    large: string;
-  };
-  members: ClanWarLeagueMember[];
-}
-
-export interface ClanWarLeagueMember {
-  tag: string;
-  name: string;
-  townHallLevel: number;
-}
-
-export interface ClanWarLeagueRound {
-  warTags: string[];
-}
-
-export interface ClanWarLeagueWar {
-  state: string;
-  teamSize: number;
-  preparationStartTime: string;
-  startTime: string;
-  endTime: string;
-  clan: WarClan;
-  opponent: WarClan;
-}
-
-// Add new interfaces for the League API endpoints
-export interface League {
-  id: number;
-  name: string;
-  iconUrls: {
-    small: string;
-    medium: string;
-    large?: string;
-  };
-}
-
-export interface LeagueSeason {
-  id: string;
-}
-
-export interface LeagueSeasonRanking {
-  clan: {
-    tag: string;
-    name: string;
-    badgeUrls: {
-      small: string;
-      medium: string;
-      large: string;
-    };
-  };
-  rank: number;
-  trophies: number;
-  expLevel: number;
-}
-
-export interface WarLeague {
-  id: number;
-  name: string;
-}
-
-// Enhanced CWL types for more comprehensive data
-export interface ClanWarLeagueGroup {
-  state: string;
-  season: string;
-  clans: ClanWarLeagueClan[];
-  rounds: ClanWarLeagueRound[];
   warLeague?: WarLeague;
 }
 
@@ -238,11 +161,7 @@ export interface ClanWarLeagueClan {
   tag: string;
   name: string;
   clanLevel: number;
-  badgeUrls: {
-    small: string;
-    medium: string;
-    large: string;
-  };
+  badgeUrls: BadgeUrls;
   members: ClanWarLeagueMember[];
 }
 
@@ -273,4 +192,95 @@ export interface ClanWarLeagueWar {
   clan: WarClan;
   opponent: WarClan;
   warLeague?: WarLeague;
+}
+
+// War-related types
+export interface ClanWar {
+  state: "notInWar" | "preparation" | "inWar" | "warEnded";
+  teamSize: number;
+  preparationStartTime: string;
+  startTime: string;
+  endTime: string;
+  clan: WarClan;
+  opponent: WarClan;
+  warTag?: string;
+}
+
+export interface WarLeagueGroup {
+  state: string;
+  season: string;
+  clans: LeagueClan[];
+  rounds: LeagueRound[];
+  warLeague?: WarLeague; // Add this optional property
+}
+
+export interface LeagueClan {
+  tag: string;
+  name: string;
+  clanLevel: number;
+  badgeUrls: BadgeUrls;
+  members: LeagueClanMember[];
+}
+
+export interface LeagueClanMember {
+  tag: string;
+  name: string;
+  townHallLevel: number;
+}
+
+export interface LeagueRound {
+  warTags: string[];
+}
+
+export interface WarLog {
+  items: WarLogEntry[];
+}
+
+export interface WarLogEntry {
+  result: string;
+  endTime: string;
+  teamSize: number;
+  clan: WarClanSummary;
+  opponent: WarClanSummary;
+}
+
+export interface WarClanSummary {
+  tag: string;
+  name: string;
+  clanLevel: number;
+  badgeUrls: BadgeUrls;
+  attacks?: number;
+  stars: number;
+  destructionPercentage: number;
+}
+
+// Add new interfaces for the League API endpoints
+export interface League {
+  id: number;
+  name: string;
+  iconUrls: {
+    small: string;
+    medium: string;
+    large?: string;
+  };
+}
+
+export interface LeagueSeason {
+  id: string;
+}
+
+export interface LeagueSeasonRanking {
+  clan: {
+    tag: string;
+    name: string;
+    badgeUrls: BadgeUrls;
+  };
+  rank: number;
+  trophies: number;
+  expLevel: number;
+}
+
+export interface WarLeague {
+  id: number;
+  name: string;
 }

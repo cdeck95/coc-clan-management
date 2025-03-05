@@ -1,31 +1,57 @@
 import { getClanInfo } from "@/lib/api";
-import { MemberCard } from "@/components/member-card";
-import { ApiStatusBanner } from "@/components/api-status-banner";
-import { MOCK_CLAN_DATA } from "@/lib/mock-data";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { MembersList } from "@/components/members-list";
 
 export default async function MembersPage() {
   const clanData = await getClanInfo();
+  const members = clanData.memberList || [];
 
-  // Check if using mock data
-  const isUsingMockData =
-    JSON.stringify(clanData) === JSON.stringify(MOCK_CLAN_DATA);
+  // Sort members by role priority, then by trophies
+  const sortedMembers = [...members].sort((a, b) => {
+    // Role priority: leader > co-leader > elder > member
+    const roleOrder: { [key: string]: number } = {
+      leader: 1,
+      "co-leader": 2,
+      elder: 3,
+      member: 4,
+    };
+
+    if (roleOrder[a.role] !== roleOrder[b.role]) {
+      return roleOrder[a.role] - roleOrder[b.role];
+    }
+
+    // Then sort by trophies
+    return b.trophies - a.trophies;
+  });
 
   return (
     <div className="space-y-6">
-      {isUsingMockData && <ApiStatusBanner isUsingMockData={isUsingMockData} />}
-
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Clan Members</h1>
+        <h1 className="text-3xl font-bold tracking-tight">
+          {clanData.name} Members
+        </h1>
         <p className="text-muted-foreground mt-2">
-          Manage and view information about all members in the War Boiz clan
+          Manage clan members, view stats, and track performance
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {clanData.memberList.map((member) => (
-          <MemberCard key={member.tag} member={member} />
-        ))}
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Members List</CardTitle>
+          <CardDescription>
+            {members.length} total members ({members.length}/50)
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <MembersList members={sortedMembers} />
+        </CardContent>
+      </Card>
     </div>
   );
 }

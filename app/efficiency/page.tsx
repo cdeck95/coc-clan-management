@@ -8,10 +8,19 @@ import { ApiStatusBanner } from "@/components/api-status-banner";
 import { MOCK_WAR_DATA } from "@/lib/mock-data";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 export default async function EfficiencyPage() {
   // Get the war data first to potentially update efficiency stats
-  const warData = await getCurrentWar();
+  const warData = await getCurrentWar(
+    process.env.NEXT_PUBLIC_CLAN_TAG as string
+  );
 
   // Get efficiency data for all members
   const efficiencies = await getMemberEfficiencies();
@@ -32,10 +41,10 @@ export default async function EfficiencyPage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            Attack Efficiency
+            Member Attack Efficiency
           </h1>
           <p className="text-muted-foreground mt-2">
-            View statistics on member attacking performance
+            Track performance and efficiency of clan members in wars
           </p>
         </div>
         <form
@@ -50,6 +59,22 @@ export default async function EfficiencyPage() {
           </Button>
         </form>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Member Efficiency</CardTitle>
+          <CardDescription>
+            Attack performance tracking for clan members
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            Efficiency tracking will be implemented in a future update. This
+            feature will track stars earned, destruction percentage, and overall
+            attack performance across wars.
+          </p>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {sortedEfficiencies.length > 0 ? (
