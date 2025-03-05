@@ -105,6 +105,274 @@ export function MembersList({ members }: MembersListProps) {
     }
   };
 
+  const [isMobile, setIsMobile] = useState(false);
+  const handleResize = () => {
+    setIsMobile(window.innerWidth < 1024);
+  };
+
+  useEffect(() => {
+    window.addEventListener("resize", handleResize);
+    handleResize();
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  console.log("IsMobile", isMobile);
+  if (isMobile) {
+    return (
+      <div className="container mx-auto px-4 py-6 space-y-4">
+        {members.map((member, idx) => {
+          const donationRatio = getDonationRatio(
+            member.donations,
+            member.donationsReceived
+          );
+          const formattedRatio =
+            donationRatio === Infinity ? "∞" : donationRatio.toFixed(1);
+
+          const hasNotes = memberNotes[member.tag]?.length > 0;
+          const hasStrikes = memberStrikes[member.tag]?.length > 0;
+
+          const rankChange = member.previousClanRank - member.clanRank;
+
+          return (
+            <Collapsible
+              key={member.tag}
+              open={expanded[member.tag]}
+              onOpenChange={() => handleToggleExpand(member)}
+              className={cn(
+                "border rounded-md overflow-hidden transition-all relative",
+                idx === 0
+                  ? "border-amber-500/50 bg-amber-50/50 dark:bg-amber-900/10"
+                  : idx === 1
+                  ? "border-zinc-400/50 bg-zinc-50/50 dark:bg-zinc-800/10"
+                  : idx === 2
+                  ? "border-amber-700/50 bg-amber-100/30 dark:bg-amber-800/10"
+                  : "bg-white dark:bg-gray-800"
+              )}
+            >
+              <div className="flex flex-col sm:flex-row items-center gap-3 p-3">
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-5 w-5 p-0">
+                    {expanded[member.tag] ? (
+                      <ChevronDown className="h-4 w-4" />
+                    ) : (
+                      <ChevronRight className="h-4 w-4" />
+                    )}
+                  </Button>
+                </CollapsibleTrigger>
+
+                {/* Rank medal for top 3 */}
+                <div className="absolute top-[7px] left-[7px] flex flex-row gap-2 justify-center items-center">
+                  {idx === 0 && <Medal className="h-5 w-5 text-amber-500" />}
+                  {idx === 1 && <Medal className="h-5 w-5 text-zinc-400" />}
+                  {idx === 2 && <Medal className="h-5 w-5 text-amber-700" />}
+                  {idx > 2 && (
+                    <span className="text-sm text-muted-foreground">
+                      {member.clanRank}
+                    </span>
+                  )}
+                  {/* Rank change */}
+                  {rankChange != 0 && (
+                    <div className="w-6 flex justify-center">
+                      {rankChange > 0 && (
+                        <ArrowUp className="h-4 w-4 text-green-500" />
+                      )}
+                      {rankChange < 0 && (
+                        <ArrowDown className="h-4 w-4 text-red-500" />
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <div className="absolute top-[7px] right-[5px] flex flex-row gap-2 items-center">
+                  {/* Trophies */}
+                  <div className="flex items-center min-w-[60px] max-w-[60px]">
+                    <Trophy className="h-4 w-4 text-amber-500 mr-1" />
+                    <span>{member.trophies}</span>
+                  </div>
+                </div>
+                {/* Member name and role */}
+                <div className="flex flex-col items-center justify-center gap-2">
+                  {/* Townhall Level */}
+                  <div className="flex flex-row gap-2 justify-center items-center min-w-[32px]">
+                    <THLevelIcon level={member.townHallLevel || 1} size="sm" />
+                    <div className="font-medium">{member.name}</div>
+                    {/* Status indicators */}
+                    {hasNotes && <FileText className="h-3 w-3 text-blue-500" />}
+                    {hasStrikes && (
+                      <AlertCircle className="h-3 w-3 text-red-500" />
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Badge className={`${getRoleColor(member.role)} text-xs`}>
+                      {getRoleName(member.role)}
+                    </Badge>
+                  </div>
+                </div>
+
+                {/* Donation ratio */}
+                <div className="flex items-center justify-end min-w-[160px] text-right text-xs">
+                  <div className="flex flex-col items-center gap-1">
+                    <div className="flex items-center gap-1">
+                      <span className="text-muted-foreground">Donated</span>
+                      <span className="font-medium text-green-600">
+                        {member.donations}
+                      </span>
+                      <span className="mx-1">/</span>
+                      <span className="text-muted-foreground">Received</span>
+                      <span className="font-medium text-blue-600">
+                        {member.donationsReceived}
+                      </span>
+                    </div>
+                    <Badge
+                      className={cn(
+                        "mt-1 flex flex-row justify-center items-center",
+                        getDonationBadgeColor(donationRatio)
+                      )}
+                    >
+                      Ratio: {formattedRatio}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+
+              <CollapsibleContent>
+                <div className="px-4 pb-3 pt-1 bg-muted/20">
+                  {loadingData[member.tag] ? (
+                    <div className="py-4 text-center text-sm text-muted-foreground">
+                      Loading member data...
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <h4 className="text-sm font-medium mb-2">Details</h4>
+                        <div className="grid grid-cols-2 gap-2 text-sm">
+                          <div>Level:</div>
+                          <div className="font-medium">{member.expLevel}</div>
+                          <div>Townhall:</div>
+                          <div className="font-medium flex items-center">
+                            <THLevelIcon
+                              level={member.townHallLevel || 1}
+                              size="sm"
+                              className="mr-2"
+                            />
+                            Level {member.townHallLevel || "?"}
+                          </div>
+                          <div>Trophies:</div>
+                          <div className="font-medium">{member.trophies}</div>
+                          <div>Versus Trophies:</div>
+                          <div className="font-medium">
+                            {member.versusTrophies}
+                          </div>
+                          <div>League:</div>
+                          <div className="font-medium flex items-center gap-1">
+                            {member.league?.name}
+                            {member.league?.iconUrls?.small && (
+                              <img
+                                src={member.league.iconUrls.small}
+                                alt={member.league.name}
+                                className="h-4 w-4"
+                              />
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Notes section */}
+                        <div className="mt-4">
+                          <div className="flex justify-between items-center mb-2">
+                            <h4 className="text-sm font-medium">Notes</h4>
+                            <MemberNoteDialog
+                              memberId={member.tag}
+                              memberName={member.name}
+                              onNoteSaved={() => handleDataRefresh(member.tag)}
+                              buttonVariant="ghost"
+                              buttonSize="sm"
+                              buttonLabel="Add"
+                            />
+                          </div>
+                          {memberNotes[member.tag]?.length ? (
+                            <div className="space-y-2">
+                              {memberNotes[member.tag].map((note) => (
+                                <div
+                                  key={note.id}
+                                  className="text-xs p-2 rounded bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800"
+                                >
+                                  <p>{note.note}</p>
+                                  <p className="text-[10px] mt-1 text-muted-foreground">
+                                    {new Date(note.date).toLocaleString()}
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-xs text-muted-foreground">
+                              No notes recorded
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Strikes section */}
+                      <div>
+                        <div className="flex justify-between items-center mb-2">
+                          <h4 className="text-sm font-medium">Strikes</h4>
+                          <MemberStrikeDialog
+                            memberId={member.tag}
+                            memberName={member.name}
+                            onStrikeSaved={() => handleDataRefresh(member.tag)}
+                            buttonVariant="ghost"
+                            buttonSize="sm"
+                            buttonLabel="Add"
+                          />
+                        </div>
+                        {memberStrikes[member.tag]?.length ? (
+                          <div className="space-y-2">
+                            {memberStrikes[member.tag].map((strike) => (
+                              <div
+                                key={strike.id}
+                                className="text-xs p-2 rounded bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"
+                              >
+                                <p className="font-medium">{strike.reason}</p>
+                                <p className="text-[10px] mt-1 text-muted-foreground">
+                                  {new Date(strike.date).toLocaleString()}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-xs text-muted-foreground">
+                            No strikes recorded
+                          </p>
+                        )}
+                        <div className="mt-4 pt-3 border-t">
+                          <h4 className="text-sm font-medium mb-2">
+                            Donations
+                          </h4>
+                          <div className="grid grid-cols-2 gap-2 text-sm">
+                            <div>Donated:</div>
+                            <div className="font-medium text-green-600">
+                              {member.donations}
+                            </div>
+                            <div>Received:</div>
+                            <div className="font-medium text-blue-600">
+                              {member.donationsReceived}
+                            </div>
+                            <div>Ratio:</div>
+                            <div className="font-medium">{formattedRatio}</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          );
+        })}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-2">
       {members.map((member, idx) => {

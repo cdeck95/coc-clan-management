@@ -31,8 +31,9 @@ export default async function MembersPage() {
   });
 
   return (
-    <div className="space-y-6">
-      <div>
+    <div className="container mx-auto px-4 py-6 space-y-8">
+      {/* Header Section */}
+      <div className="text-center md:text-left">
         <h1 className="text-3xl font-bold tracking-tight">
           {clanData.name} Members
         </h1>
@@ -41,7 +42,8 @@ export default async function MembersPage() {
         </p>
       </div>
 
-      <Card>
+      {/* Members List Card */}
+      <Card className="shadow grid grid-cols-1 gap-4">
         <CardHeader>
           <CardTitle>Members List</CardTitle>
           <CardDescription>

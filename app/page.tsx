@@ -28,9 +28,10 @@ export default async function Dashboard() {
       : 0;
 
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto px-4 py-6 space-y-8">
       {isUsingMockData && <ApiStatusBanner isUsingMockData={isUsingMockData} />}
 
+      {/* Clan Overview Section */}
       <div className="flex flex-col md:flex-row items-center gap-6 mb-8">
         {clanData?.badgeUrls?.medium && (
           <div className="flex-shrink-0">
@@ -59,13 +60,14 @@ export default async function Dashboard() {
               </Badge>
             )}
           </div>
-          <p className="mt-4">{clanData.description}</p>
+          <p className="mt-4 text-base">{clanData.description}</p>
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+      {/* Stats Cards */}
+      <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+        <Card className="shadow">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Total Members</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -76,8 +78,8 @@ export default async function Dashboard() {
             </p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+        <Card className="shadow">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">War Record</CardTitle>
             <Swords className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -90,8 +92,8 @@ export default async function Dashboard() {
             </p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+        <Card className="shadow">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Clan Points</CardTitle>
             <Trophy className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -102,8 +104,8 @@ export default async function Dashboard() {
             </p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+        <Card className="shadow">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">War League</CardTitle>
             <Shield className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -118,8 +120,9 @@ export default async function Dashboard() {
         </Card>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card className="col-span-1">
+      {/* Additional Info Cards */}
+      <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2">
+        <Card className="shadow">
           <CardHeader>
             <CardTitle>Clan Requirements</CardTitle>
             <CardDescription>Minimum requirements to join</CardDescription>
@@ -139,7 +142,7 @@ export default async function Dashboard() {
             )}
           </CardContent>
         </Card>
-        <Card className="col-span-1">
+        <Card className="shadow">
           <CardHeader>
             <CardTitle>Clan Location</CardTitle>
             <CardDescription>Where the clan is based</CardDescription>

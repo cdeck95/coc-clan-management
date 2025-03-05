@@ -275,7 +275,10 @@ export async function getMemberNotesByMemberId(
     debugLog(`Getting notes for member ${memberId} via API`);
 
     const encodedMemberId = encodeURIComponent(memberId);
-    const response = await fetch(`/api/storage/notes/${encodedMemberId}`);
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+    const response = await fetch(
+      `${baseUrl}/api/storage/notes/${encodedMemberId}`
+    );
 
     if (!response.ok) {
       throw new Error(`Failed to fetch notes for member: ${response.status}`);
@@ -294,7 +297,13 @@ export async function getMemberNotesByMemberId(
 export async function getMemberStrikes(): Promise<MemberStrike[]> {
   try {
     debugLog("Getting all member strikes via API");
-    const response = await fetch("/api/storage/strikes");
+    // Use an environment variable or fallback URL
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+    const url = new URL(`/api/storage/strikes`, baseUrl);
+    const response = await fetch(url.toString(), {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
 
     if (!response.ok) {
       throw new Error(`Failed to fetch strikes: ${response.status}`);
@@ -313,7 +322,9 @@ export async function saveMemberStrike(strike: MemberStrike): Promise<void> {
   try {
     debugLog("Saving strike via API:", strike);
 
-    const response = await fetch("/api/storage/strikes", {
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+
+    const response = await fetch(`${baseUrl}/api/storage/strikes`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -339,9 +350,14 @@ export async function deleteMemberStrike(strikeId: string): Promise<void> {
   try {
     debugLog(`Deleting strike ${strikeId} via API`);
 
-    const response = await fetch(`/api/storage/strikes?id=${strikeId}`, {
-      method: "DELETE",
-    });
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+
+    const response = await fetch(
+      `${baseUrl}/api/storage/strikes?id=${strikeId}`,
+      {
+        method: "DELETE",
+      }
+    );
 
     if (!response.ok) {
       const errorData = await response.json();
@@ -364,7 +380,11 @@ export async function getMemberStrikesByMemberId(
     debugLog(`Getting strikes for member ${memberId} via API`);
 
     const encodedMemberId = encodeURIComponent(memberId);
-    const response = await fetch(`/api/storage/strikes/${encodedMemberId}`);
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+
+    const response = await fetch(
+      `${baseUrl}/api/storage/strikes/${encodedMemberId}`
+    );
 
     if (!response.ok) {
       throw new Error(`Failed to fetch strikes for member: ${response.status}`);
