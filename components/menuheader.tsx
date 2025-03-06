@@ -33,7 +33,7 @@ export default function MenuHeader() {
       title: "War",
       href: "/war",
       icon: <Swords className="h-4 w-4" />,
-      variant: path.startsWith("/wars") ? "default" : "ghost",
+      variant: path.startsWith("/war") ? "default" : "ghost",
     },
     {
       title: "Clan War League",

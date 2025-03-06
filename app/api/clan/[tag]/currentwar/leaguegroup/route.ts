@@ -8,16 +8,20 @@ export async function GET(
   { params }: { params: tParams }
 ) {
   try {
+    console.log("API route: Fetching league group...");
     // Await params to fix the error
     const tag = (await params).tag;
+    console.log("API route: Clan tag:", tag);
     // Add the # back to the tag for the Clash API
     const clanTag = `#${tag}`;
+    console.log("API route: Clan tag with #:", clanTag);
     const data = await fetchFromClashAPI(
       `/clans/${encodeURIComponent(clanTag)}/currentwar/leaguegroup`
     );
+    console.log("API route: League group data received");
     return NextResponse.json(data);
   } catch (error) {
-    console.error("Error fetching league group:", error);
+    console.error("API route: Error fetching league group:", error);
     return NextResponse.json(
       { error: "Failed to fetch league group" },
       { status: 500 }
