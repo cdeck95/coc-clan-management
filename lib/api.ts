@@ -234,7 +234,12 @@ export async function saveMemberNote(note: MemberNote): Promise<void> {
   try {
     debugLog("Saving note via API:", note);
 
-    const response = await fetch("/api/storage/notes", {
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+    console.log("Base URL:", baseUrl);
+    const url = new URL("/api/storage/notes", baseUrl);
+    console.log("Saving note to:", url.toString());
+
+    const response = await fetch(url.toString(), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -285,10 +290,15 @@ export async function getMemberNotesByMemberId(
     debugLog(`Getting notes for member ${memberId} via API`);
 
     const encodedMemberId = encodeURIComponent(memberId);
+    console.log("Encoded member ID:", encodedMemberId);
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-    const response = await fetch(
-      `${baseUrl}/api/storage/notes/${encodedMemberId}`
-    );
+    console.log("baseUrl:", baseUrl);
+    const url = new URL(`/api/storage/notes/${encodedMemberId}`, baseUrl);
+    console.log("Fetching notes from:", url.toString());
+    const response = await fetch(url.toString(), {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
 
     if (!response.ok) {
       throw new Error(`Failed to fetch notes for member: ${response.status}`);
@@ -391,10 +401,17 @@ export async function getMemberStrikesByMemberId(
 
     const encodedMemberId = encodeURIComponent(memberId);
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-
-    const response = await fetch(
+    console.log(
+      "Fetching strikes from:",
       `${baseUrl}/api/storage/strikes/${encodedMemberId}`
     );
+
+    const url = new URL(`/api/storage/strikes/${encodedMemberId}`, baseUrl);
+    console.log("Fetching strikes from:", url.toString());
+    const response = await fetch(url.toString(), {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
 
     if (!response.ok) {
       throw new Error(`Failed to fetch strikes for member: ${response.status}`);
