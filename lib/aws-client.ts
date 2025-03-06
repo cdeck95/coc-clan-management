@@ -10,14 +10,14 @@ import { StreamingBlobPayloadInputTypes } from "@smithy/types";
 
 // S3 configuration
 const bucketName = process.env.NEXT_PUBLIC_S3_BUCKET_NAME || "clash-data";
-const region = process.env.NEXT_PUBLIC_AWS_REGION || "us-east-1";
+const region = process.env.NEXT_PUBLIC_REGION || "us-east-1";
 
 // Create S3 client with proper credentials
 const s3Client = new S3Client({
   region,
   credentials: {
-    accessKeyId: process.env.NEXT_PUBLIC_AWS_ACCESS_KEY_ID || "",
-    secretAccessKey: process.env.NEXT_PUBLIC_AWS_SECRET_ACCESS_KEY || "",
+    accessKeyId: process.env.NEXT_PUBLIC_ACCESS_KEY_ID || "",
+    secretAccessKey: process.env.NEXT_PUBLIC_SECRET_ACCESS_KEY || "",
   },
 });
 
@@ -41,8 +41,8 @@ export async function putObject<T>(key: string, data: T): Promise<void> {
   debugLog("Data:", data);
   debugLog("Bucket:", bucketName);
   debugLog("Region:", region);
-  debugLog("Access Key ID:", process.env.NEXT_PUBLIC_AWS_ACCESS_KEY_ID);
-  debugLog("Secret Access Key:", process.env.NEXT_PUBLIC_AWS_SECRET_ACCESS_KEY);
+  debugLog("Access Key ID:", process.env.NEXT_PUBLIC_ACCESS_KEY_ID);
+  debugLog("Secret Access Key:", process.env.NEXT_PUBLIC_SECRET_ACCESS_KEY);
 
   try {
     const command = new PutObjectCommand({
