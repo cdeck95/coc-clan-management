@@ -26,6 +26,7 @@ import {
   MOCK_WAR_DATA,
   MOCK_CWL_GROUP_DATA,
 } from "@/lib/mock-data";
+import { getClashApiToken } from "@/lib/clash-token-manager";
 
 // Base URL for the Clash of Clans API
 const API_BASE_URL = "https://api.clashofclans.com/v1";
@@ -50,7 +51,16 @@ const encodeTag = (tag: string) => {
 
 // Server-side API calls
 async function fetchFromAPI(endpoint: string) {
-  const apiToken = process.env.CLASH_API_TOKEN;
+  let apiToken;
+
+  try {
+    // Try to get a dynamically managed token first
+    apiToken = await getClashApiToken();
+  } catch (error) {
+    console.error("Error getting dynamic token:", error);
+    // Fall back to static token
+    apiToken = process.env.CLASH_API_TOKEN;
+  }
 
   if (!apiToken) {
     console.warn("No API token provided, using mock data");
