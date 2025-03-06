@@ -215,7 +215,13 @@ export async function getLeagueSeasonRankings(
 export async function getMemberNotes(): Promise<MemberNote[]> {
   try {
     debugLog("Getting all member notes via API");
-    const response = await fetch("/api/storage/notes");
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+    const url = new URL("/api/storage/notes", baseUrl);
+    console.log("Fetching notes from:", url.toString());
+    const response = await fetch(url.toString(), {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
 
     if (!response.ok) {
       throw new Error(`Failed to fetch notes: ${response.status}`);
@@ -265,7 +271,11 @@ export async function deleteMemberNote(noteId: string): Promise<void> {
   try {
     debugLog(`Deleting note ${noteId} via API`);
 
-    const response = await fetch(`/api/storage/notes?id=${noteId}`, {
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+    const url = new URL(`/api/storage/notes?id=${noteId}`, baseUrl);
+    console.log("Deleting note from:", url.toString());
+
+    const response = await fetch(url.toString(), {
       method: "DELETE",
     });
 
