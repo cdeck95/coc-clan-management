@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { getWarLeagueWar } from "@/lib/api";
 import { ClanWar } from "@/types/clash";
@@ -24,7 +24,8 @@ import {
 } from "@/lib/utils";
 import Image from "next/image";
 
-export default function WarDetailsPage() {
+// Create a separate component to use searchParams
+function WarDetailsContent() {
   const [war, setWar] = useState<ClanWar | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -192,6 +193,8 @@ export default function WarDetailsPage() {
                     <Image
                       src={ourClan?.badgeUrls.small || ""}
                       alt={ourClan?.name || ""}
+                      width={40}
+                      height={40}
                       className="inline-block h-10 w-10"
                     />
                   </div>
@@ -219,6 +222,8 @@ export default function WarDetailsPage() {
                     <Image
                       src={theirClan?.badgeUrls.small || ""}
                       alt={theirClan?.name || ""}
+                      width={40}
+                      height={40}
                       className="inline-block h-10 w-10"
                     />
                   </div>
@@ -253,5 +258,27 @@ export default function WarDetailsPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+// Loading component for Suspense fallback
+function WarDetailsLoading() {
+  return (
+    <div className="container mx-auto py-6 space-y-4">
+      <div className="flex items-center gap-2">
+        <div className="w-10 h-10 rounded-md bg-muted"></div>
+        <h1 className="text-3xl font-bold">War Details</h1>
+      </div>
+      <Skeleton className="h-96 w-full" />
+    </div>
+  );
+}
+
+// Main component with Suspense boundary
+export default function WarDetailsPage() {
+  return (
+    <Suspense fallback={<WarDetailsLoading />}>
+      <WarDetailsContent />
+    </Suspense>
   );
 }
