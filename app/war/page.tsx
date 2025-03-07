@@ -55,6 +55,7 @@ export default function WarPage() {
 
         // Fetch current regular war
         const warData = await getCurrentWar(cleanClanTag);
+        console.log("Current war data received:", warData);
         setCurrentWar(warData);
       } catch (err) {
         console.error("Error fetching war data:", err);
