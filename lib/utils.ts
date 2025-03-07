@@ -1,7 +1,7 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { format, formatDistanceToNow } from "date-fns";
-import { ClanWarLeagueWar, CurrentWar } from "@/types/clash";
+import { formatDistanceToNow } from "date-fns";
+import { ClanWar, ClanWarLeagueWar } from "@/types/clash";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -42,35 +42,59 @@ export function getWarStateColor(state: string) {
 
 /**
  * Determine the number of attacks per member based on war type
- * @param war War object
+ * @param war The war object
  * @returns Number of attacks per member (1 for CWL, 2 for regular war)
  */
 export function getWarAttacksPerMember(
-  war: CurrentWar | ClanWarLeagueWar
+  war: ClanWar | ClanWarLeagueWar
 ): number {
-  // Check if it's a CWL war (has warLeague property or is accessed via a war tag)
-  if ("warLeague" in war || "warTags" in war) {
-    return 1;
-  }
-  return 2;
+  // Simple check for CWL wars vs regular wars
+  return war.hasOwnProperty("warLeague") ? 1 : 2;
 }
 
 /**
- * Format a date string for display
+ * Format a date string for display, adjusting for EST timezone
  * @param dateString - ISO date string
  * @returns Formatted date string
  */
 export function formatDate(dateString: string): string {
   try {
-    const date = new Date(dateString);
+    // Parse date, assuming it's in UTC
+    let date: Date;
+
+    if (dateString.includes("T") && !dateString.includes("-")) {
+      // Parse non-standard format - YYYYMMDDTHHMMSS.msZ
+      const year = parseInt(dateString.substring(0, 4));
+      const month = parseInt(dateString.substring(4, 6)) - 1; // Months are 0-based
+      const day = parseInt(dateString.substring(6, 8));
+      const hour = parseInt(dateString.substring(9, 11));
+      const minute = parseInt(dateString.substring(11, 13));
+      const second = parseInt(dateString.substring(13, 15));
+
+      // Create date in UTC
+      date = new Date(Date.UTC(year, month, day, hour, minute, second));
+    } else {
+      date = new Date(dateString);
+    }
 
     // Check if date is valid
     if (isNaN(date.getTime())) {
       return "Invalid date";
     }
 
-    // Format the date
-    return format(date, "MMM d, yyyy h:mm a");
+    // Format the date, using locale formatting (which will use system timezone)
+    // EST timezone will be applied automatically if the system is set to EST
+    const options: Intl.DateTimeFormatOptions = {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+      timeZone: "America/New_York", // Force EST timezone
+    };
+
+    return new Intl.DateTimeFormat("en-US", options).format(date);
   } catch (error) {
     console.error("Error formatting date:", error);
     return "Date error";
@@ -104,11 +128,32 @@ export function formatRelativeTime(dateString: string): string {
  * @returns Formatted time remaining string (e.g. "1h 30m 15s")
  */
 export function calculateTimeRemaining(endTimeString: string): string {
-  const endTime = new Date(endTimeString).getTime();
+  // Handle non-standard date format like "20250308T023906.000Z"
+  let endTime: number;
+
+  if (endTimeString.includes("T") && !endTimeString.includes("-")) {
+    // Parse non-standard format - YYYYMMDDTHHMMSS.msZ
+    const year = parseInt(endTimeString.substring(0, 4));
+    const month = parseInt(endTimeString.substring(4, 6)) - 1; // Months are 0-based
+    const day = parseInt(endTimeString.substring(6, 8));
+    const hour = parseInt(endTimeString.substring(9, 11));
+    const minute = parseInt(endTimeString.substring(11, 13));
+    const second = parseInt(endTimeString.substring(13, 15));
+
+    // Create date in UTC
+    const date = new Date(Date.UTC(year, month, day, hour, minute, second));
+    // Adjust for EST timezone (UTC-5)
+    endTime = date.getTime();
+  } else {
+    // Standard ISO format
+    const date = new Date(endTimeString);
+    endTime = date.getTime();
+  }
+
   const now = Date.now();
 
-  // If the end time has passed, return empty string
-  if (now >= endTime) {
+  // If the end time has passed or is invalid, return empty string
+  if (isNaN(endTime) || now >= endTime) {
     return "";
   }
 

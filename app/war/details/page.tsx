@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { getWarLeagueWar } from "@/lib/api";
-import { ClanWarLeagueWar } from "@/types/clash";
+import { ClanWar } from "@/types/clash";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -25,7 +25,7 @@ import {
 import Image from "next/image";
 
 export default function WarDetailsPage() {
-  const [war, setWar] = useState<ClanWarLeagueWar | null>(null);
+  const [war, setWar] = useState<ClanWar | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [timeRemaining, setTimeRemaining] = useState<string>("");

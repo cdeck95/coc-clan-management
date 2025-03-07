@@ -7,25 +7,54 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ClanWar } from "@/types/clash";
+import { ClanWarLeagueWar } from "@/types/clash";
 import { Badge } from "@/components/ui/badge";
 import { Star } from "lucide-react";
 
-interface WarAttacksTableProps {
-  warData: ClanWar;
+interface WarLeagueAttacksTableProps {
+  warData: ClanWarLeagueWar;
+  showOnlyClan?: boolean;
+  showOnlyOpponent?: boolean;
 }
 
-export function WarAttacksTable({ warData }: WarAttacksTableProps) {
+export function WarLeagueAttacksTable({
+  warData,
+  showOnlyClan = false,
+  showOnlyOpponent = false,
+}: WarLeagueAttacksTableProps) {
   const { clan, opponent } = warData;
 
-  // Combine both clan's members
+  // Get members based on filter options
+  const members = [];
+
+  if (!showOnlyClan && !showOnlyOpponent) {
+    // Show all members
+    members.push(
+      ...clan.members.map((member) => ({ ...member, isOurClan: true }))
+    );
+    members.push(
+      ...opponent.members.map((member) => ({ ...member, isOurClan: false }))
+    );
+  } else if (showOnlyClan) {
+    // Show only our clan
+    members.push(
+      ...clan.members.map((member) => ({ ...member, isOurClan: true }))
+    );
+  } else if (showOnlyOpponent) {
+    // Show only opponent clan
+    members.push(
+      ...opponent.members.map((member) => ({ ...member, isOurClan: false }))
+    );
+  }
+
+  // Sort by position in the war map
+  members.sort((a, b) => a.mapPosition - b.mapPosition);
+
+  // Get all members for finding defender positions
   const allMembers = [
     ...clan.members.map((member) => ({ ...member, isOurClan: true })),
     ...opponent.members.map((member) => ({ ...member, isOurClan: false })),
   ];
-
-  // Sort by position in the war map
-  allMembers.sort((a, b) => a.mapPosition - b.mapPosition);
 
   return (
     <div className="overflow-x-auto">
@@ -35,11 +64,11 @@ export function WarAttacksTable({ warData }: WarAttacksTableProps) {
             <TableHead className="w-12 text-center">#</TableHead>
             <TableHead>Player</TableHead>
             <TableHead className="text-center">TH</TableHead>
-            <TableHead>Attacks (2 per member)</TableHead>
+            <TableHead>Attack (1 per member)</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {allMembers.map((member) => (
+          {members.map((member) => (
             <TableRow
               key={member.tag}
               className={
@@ -61,7 +90,7 @@ export function WarAttacksTable({ warData }: WarAttacksTableProps) {
                 {member.townhallLevel}
               </TableCell>
               <TableCell>
-                {member.attacks ? (
+                {member.attacks && member.attacks.length > 0 ? (
                   <div className="space-y-2">
                     {member.attacks.map((attack) => {
                       const defenderMapPos = attack.defenderTag
@@ -102,7 +131,7 @@ export function WarAttacksTable({ warData }: WarAttacksTableProps) {
                   </div>
                 ) : (
                   <span className="text-muted-foreground text-sm">
-                    No attacks yet
+                    No attack yet
                   </span>
                 )}
               </TableCell>
