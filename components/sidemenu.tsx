@@ -74,7 +74,7 @@ export default function SideMenu() {
     },
     {
       title: "Clan War League",
-      href: "/warleague/league-info",
+      href: "/warleague",
       icon: <Trophy className="h-4 w-4" />,
       variant: path.startsWith("/warleague") ? "default" : "ghost",
     },
