@@ -431,6 +431,30 @@ export default function WarLeaguePage() {
     }
   };
 
+  // Add a helper function to determine matchup border color
+  const getMatchupBorderClass = (
+    war: ClanWarLeagueWar,
+    isOurClanAttacking: boolean
+  ): string => {
+    // For wars that haven't ended yet
+    if (war.state !== "warEnded") {
+      return "border-primary border-2";
+    }
+
+    // For ended wars, check if we won
+    const ourClan = isOurClanAttacking ? war.clan : war.opponent;
+    const theirClan = isOurClanAttacking ? war.opponent : war.clan;
+
+    if (ourClan.stars > theirClan.stars) {
+      return "border-green-500 border-2";
+    } else if (ourClan.stars < theirClan.stars) {
+      return "border-red-500 border-2";
+    } else {
+      // Tie
+      return "border-yellow-500 border-2";
+    }
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto py-6 space-y-4">
@@ -455,10 +479,14 @@ export default function WarLeaguePage() {
   }
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Clan War League</h1>
-        <Button variant="outline" onClick={navigateToRegularWar}>
+    <div className="container mx-auto py-4 sm:py-6 space-y-4 sm:space-y-6 px-2 sm:px-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0">
+        <h1 className="text-2xl sm:text-3xl font-bold">Clan War League</h1>
+        <Button
+          variant="outline"
+          onClick={navigateToRegularWar}
+          className="w-full sm:w-auto mt-2 sm:mt-0"
+        >
           <ArrowLeft className="h-4 w-4 mr-2" /> Back to Regular War
         </Button>
       </div>
@@ -468,7 +496,7 @@ export default function WarLeaguePage() {
         <Alert className="bg-amber-100 dark:bg-amber-900 border-amber-200 dark:border-amber-800">
           <Clock className="h-4 w-4" />
           <AlertTitle>Time Remaining</AlertTitle>
-          <AlertDescription className="font-mono text-lg">
+          <AlertDescription className="font-mono text-sm sm:text-lg">
             {timeRemaining}
           </AlertDescription>
         </Alert>
@@ -486,12 +514,13 @@ export default function WarLeaguePage() {
           </AlertDescription>
         </Alert>
       ) : (
-        <div className="grid md:grid-cols-3 gap-6">
-          <div className="md:col-span-1">
-            {/* CWL Overview */}
-            <Card className="mb-6">
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+          {/* Left sidebar - better responsive handling */}
+          <div className="md:col-span-1 flex flex-col gap-4">
+            {/* CWL Overview Card */}
+            <Card>
+              <CardHeader className="p-4">
+                <CardTitle className="flex items-center justify-between text-lg">
                   <span>CWL Season</span>
                   <LeagueInfoCard />
                 </CardTitle>
@@ -499,8 +528,8 @@ export default function WarLeaguePage() {
                   {leagueGroup?.season} - {leagueGroup?.clans.length} Clans
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="flex justify-between mb-4">
+              <CardContent className="p-4 pt-0">
+                <div className="flex justify-between mb-3">
                   <h3 className="text-sm font-semibold flex items-center">
                     <Calendar className="h-4 w-4 mr-2" /> Rounds
                   </h3>
@@ -514,7 +543,8 @@ export default function WarLeaguePage() {
                   </Button>
                 </div>
 
-                <div className="flex flex-wrap gap-2 mb-4">
+                {/* Round selector buttons - better responsive design */}
+                <div className="flex flex-wrap gap-1 sm:gap-2 mb-3">
                   {leagueGroup?.rounds?.map((round, index) => (
                     <Button
                       key={index}
@@ -548,12 +578,12 @@ export default function WarLeaguePage() {
                   ))}
                 </div>
 
+                {/* Matchups section - improved */}
                 {!showOverview ? (
                   <div className="space-y-2 mt-4">
                     <h3 className="text-sm font-semibold">
                       Round {selectedRound + 1} Matchups
                     </h3>
-                    {/* Existing round matchups display */}
                     {getClanWarsForRound(selectedRound).map(
                       (item: ClanWarLeagueWarItem) => {
                         if (!item || !item.war) return null;
@@ -565,10 +595,17 @@ export default function WarLeaguePage() {
                           <div
                             key={item.warTag}
                             className={`
-                          p-2 rounded border cursor-pointer
-                          ${isOurWar ? "border-primary" : "border-border"}
-                          ${isSelected ? "bg-accent" : "hover:bg-accent/50"}
-                        `}
+                              p-2 rounded cursor-pointer
+                              ${
+                                isOurWar
+                                  ? getMatchupBorderClass(
+                                      war,
+                                      item.isOurClanAttacking
+                                    )
+                                  : "border"
+                              }
+                              ${isSelected ? "bg-accent" : "hover:bg-accent/50"}
+                            `}
                             onClick={() => handleSelectWar(war)}
                           >
                             <div className="flex justify-between items-center">
@@ -637,19 +674,19 @@ export default function WarLeaguePage() {
                           <div
                             key={matchup.warTag}
                             className={`
-                            p-2 rounded border cursor-pointer mb-2
-                            border-primary
-                            ${
-                              selectedWar && selectedWar === war
-                                ? "bg-accent"
-                                : "hover:bg-accent/50"
-                            }
-                            ${
-                              war.state === "inWar"
-                                ? "bg-green-50/30 dark:bg-green-950/20"
-                                : ""
-                            }
-                          `}
+                              p-2 rounded cursor-pointer mb-2
+                              ${getMatchupBorderClass(war, isOurClanAttacking)}
+                              ${
+                                selectedWar && selectedWar === war
+                                  ? "bg-accent"
+                                  : "hover:bg-accent/50"
+                              }
+                              ${
+                                war.state === "inWar"
+                                  ? "bg-green-50/30 dark:bg-green-950/20"
+                                  : ""
+                              }
+                            `}
                             onClick={() => {
                               handleSelectWar(war);
                               setSelectedRound(round - 1);
@@ -799,8 +836,8 @@ export default function WarLeaguePage() {
             {/* Standings Card - Only show in non-overview mode */}
             {!showOverview && (
               <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center">
+                <CardHeader className="p-3 pb-1">
+                  <CardTitle className="flex items-center text-lg">
                     <BarChart3 className="h-4 w-4 mr-2" /> Standings
                   </CardTitle>
                 </CardHeader>
@@ -859,13 +896,13 @@ export default function WarLeaguePage() {
             )}
           </div>
 
-          {/* Selected War Display */}
+          {/* Selected War Display - more responsive */}
           <div className="md:col-span-2">
             {selectedWar ? (
               <>
-                {/* War Overview */}
-                <Card className="mb-6">
-                  <CardHeader>
+                {/* War Overview - more responsive */}
+                <Card className="mb-4 md:mb-6">
+                  <CardHeader className="p-4 pb-2">
                     <CardTitle>War Details</CardTitle>
                     <CardDescription>
                       {selectedWar.state === "preparation"
@@ -875,10 +912,11 @@ export default function WarLeaguePage() {
                         : "War Ended"}
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <div className="flex justify-between items-center rounded-lg p-4">
+                  <CardContent className="p-4 pt-0">
+                    {/* Updated more responsive layout for war details */}
+                    <div className="flex flex-col sm:flex-row justify-between items-center rounded-lg py-2">
                       {/* Clan 1 */}
-                      <div className="text-center">
+                      <div className="text-center w-full sm:w-auto mb-4 sm:mb-0">
                         <div className="mb-2">
                           <Image
                             src={selectedWar.clan.badgeUrls.small}
@@ -888,7 +926,7 @@ export default function WarLeaguePage() {
                             className="inline-block h-10 w-10"
                           />
                         </div>
-                        <div className="font-medium truncate max-w-[120px]">
+                        <div className="font-medium truncate max-w-[160px] mx-auto sm:max-w-[120px]">
                           {selectedWar.clan.name}
                         </div>
                         <div className="text-2xl font-bold flex items-center justify-center">
@@ -904,10 +942,10 @@ export default function WarLeaguePage() {
                         </div>
                       </div>
 
-                      <div className="text-xl font-bold mx-4">vs</div>
+                      <div className="text-xl font-bold mx-2 sm:mx-4">vs</div>
 
                       {/* Clan 2 */}
-                      <div className="text-center">
+                      <div className="text-center w-full sm:w-auto">
                         <div className="mb-2">
                           <Image
                             src={selectedWar.opponent.badgeUrls.small}
@@ -917,7 +955,7 @@ export default function WarLeaguePage() {
                             className="inline-block h-10 w-10"
                           />
                         </div>
-                        <div className="font-medium truncate max-w-[120px]">
+                        <div className="font-medium truncate max-w-[160px] mx-auto sm:max-w-[120px]">
                           {selectedWar.opponent.name}
                         </div>
                         <div className="text-2xl font-bold flex items-center justify-center">
@@ -939,21 +977,21 @@ export default function WarLeaguePage() {
                   </CardContent>
                 </Card>
 
-                {/* Attack Tables with Tabs */}
+                {/* Attack Tables with Tabs - improved responsive design */}
                 <Card>
-                  <CardHeader>
+                  <CardHeader className="p-4 pb-2">
                     <CardTitle>War Attacks</CardTitle>
-                    <CardDescription>
+                    <CardDescription className="hidden sm:block">
                       Each member gets 1 attack in CWL
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="p-2 sm:p-4 pt-0">
                     <Tabs defaultValue="all" className="w-full">
                       <TabsList className="grid w-full grid-cols-3">
-                        <TabsTrigger value="all">All Players</TabsTrigger>
+                        <TabsTrigger value="all">All</TabsTrigger>
                         <TabsTrigger value="clan">
                           <div className="flex items-center">
-                            <div className="w-4 h-4 mr-2 overflow-hidden rounded-full">
+                            <div className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 overflow-hidden rounded-full">
                               <Image
                                 src={selectedWar.clan.badgeUrls.small}
                                 alt=""
@@ -961,12 +999,14 @@ export default function WarLeaguePage() {
                                 height={16}
                               />
                             </div>
-                            {selectedWar.clan.name}
+                            <span className="truncate max-w-[60px] sm:max-w-full">
+                              {selectedWar.clan.name}
+                            </span>
                           </div>
                         </TabsTrigger>
                         <TabsTrigger value="opponent">
                           <div className="flex items-center">
-                            <div className="w-4 h-4 mr-2 overflow-hidden rounded-full">
+                            <div className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 overflow-hidden rounded-full">
                               <Image
                                 src={selectedWar.opponent.badgeUrls.small}
                                 alt=""
@@ -974,7 +1014,9 @@ export default function WarLeaguePage() {
                                 height={16}
                               />
                             </div>
-                            {selectedWar.opponent.name}
+                            <span className="truncate max-w-[60px] sm:max-w-full">
+                              {selectedWar.opponent.name}
+                            </span>
                           </div>
                         </TabsTrigger>
                       </TabsList>
@@ -1001,11 +1043,11 @@ export default function WarLeaguePage() {
                 </Card>
               </>
             ) : (
-              <div className="h-full flex items-center justify-center">
-                <div className="text-center p-6 bg-muted/50 rounded-lg">
+              <div className="h-[60vh] sm:h-[70vh] flex items-center justify-center">
+                <div className="text-center p-6 bg-muted/50 rounded-lg max-w-md">
                   <Trophy className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
                   <h3 className="text-xl font-semibold">Select a War</h3>
-                  <p className="text-muted-foreground">
+                  <p className="text-muted-foreground mt-2">
                     Choose a war from the matchups list to view details
                   </p>
                 </div>
