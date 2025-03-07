@@ -50,7 +50,7 @@ const encodeTag = (tag: string) => {
 };
 
 // Server-side API calls
-async function fetchFromAPI(endpoint: string) {
+export async function fetchFromAPI(endpoint: string) {
   let apiToken;
 
   try {

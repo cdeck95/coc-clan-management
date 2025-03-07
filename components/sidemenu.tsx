@@ -15,13 +15,20 @@ interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
     variant: "default" | "ghost";
     href: string;
   }[];
+  // Add onLinkClick prop to handle closing the sheet
+  onLinkClick?: () => void;
 }
 
-export function SidebarNav({ className, links, ...props }: SidebarNavProps) {
+export function SidebarNav({
+  className,
+  links,
+  onLinkClick,
+  ...props
+}: SidebarNavProps) {
   return (
     <nav className={cn("grid gap-1", className)} {...props}>
       {links.map((link, index) => (
-        <Link key={index} href={link.href}>
+        <Link key={index} href={link.href} onClick={onLinkClick}>
           <Button
             variant={link.variant}
             className="w-full justify-start"

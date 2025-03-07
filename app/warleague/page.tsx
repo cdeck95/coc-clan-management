@@ -902,7 +902,7 @@ export default function WarLeaguePage() {
               <>
                 {/* War Overview - more responsive */}
                 <Card className="mb-4 md:mb-6">
-                  <CardHeader className="p-4 pb-2">
+                  <CardHeader className="px-4 py-0 pb-2">
                     <CardTitle>War Details</CardTitle>
                     <CardDescription>
                       {selectedWar.state === "preparation"
@@ -914,9 +914,9 @@ export default function WarLeaguePage() {
                   </CardHeader>
                   <CardContent className="p-4 pt-0">
                     {/* Updated more responsive layout for war details */}
-                    <div className="flex flex-col sm:flex-row justify-between items-center rounded-lg py-2">
+                    <div className="flex flex-row justify-between items-center rounded-lg py-2">
                       {/* Clan 1 */}
-                      <div className="text-center w-full sm:w-auto mb-4 sm:mb-0">
+                      <div className="flex flex-col items-center justify-center text-center w-full sm:w-auto mb-4 sm:mb-0">
                         <div className="mb-2">
                           <Image
                             src={selectedWar.clan.badgeUrls.small}
@@ -945,7 +945,7 @@ export default function WarLeaguePage() {
                       <div className="text-xl font-bold mx-2 sm:mx-4">vs</div>
 
                       {/* Clan 2 */}
-                      <div className="text-center w-full sm:w-auto">
+                      <div className="flex flex-col items-center justify-center text-center w-full sm:w-auto">
                         <div className="mb-2">
                           <Image
                             src={selectedWar.opponent.badgeUrls.small}

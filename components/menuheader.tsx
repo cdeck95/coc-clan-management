@@ -6,9 +6,12 @@ import { SidebarNav } from "@/components/sidemenu";
 import { usePathname } from "next/navigation";
 import { Home, Users, Shield, Menu, Swords, Ban, Trophy } from "lucide-react";
 import { ModeToggle } from "./ui/modetoggle";
+import { useState } from "react";
 
 export default function MenuHeader() {
   const path = usePathname();
+  // Add state to manage the sheet open/close state
+  const [open, setOpen] = useState(false);
 
   const links: {
     title: string;
@@ -33,7 +36,8 @@ export default function MenuHeader() {
       title: "War",
       href: "/war",
       icon: <Swords className="h-4 w-4" />,
-      variant: path.startsWith("/war") ? "default" : "ghost",
+      variant:
+        path === "/war" || path.startsWith("/war/") ? "default" : "ghost",
     },
     {
       title: "Clan War League",
@@ -49,10 +53,15 @@ export default function MenuHeader() {
     },
   ];
 
+  // Function to close the sheet
+  const closeSheet = () => {
+    setOpen(false);
+  };
+
   return (
     <header className="sticky top-0 z-30 border-b bg-background">
       <div className="container flex items-center justify-between h-14 px-4 md:px-6">
-        <Sheet>
+        <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
             <Button variant="ghost" size="icon" className="md:hidden">
               <Menu className="h-6 w-6" />
@@ -68,7 +77,12 @@ export default function MenuHeader() {
               <h2 className="text-xs font-semibold text-muted-foreground pb-2">
                 MENU
               </h2>
-              <SidebarNav links={links} className="grid" />
+              {/* Pass the closeSheet function to SidebarNav */}
+              <SidebarNav
+                links={links}
+                className="grid"
+                onLinkClick={closeSheet}
+              />
             </div>
           </SheetContent>
         </Sheet>

@@ -1,4 +1,4 @@
-import { fetchFromClashAPI } from "@/lib/clash-api";
+import { fetchFromAPI } from "@/lib/api";
 import { NextRequest, NextResponse } from "next/server";
 
 type tParams = Promise<{ tag: string }>;
@@ -12,7 +12,7 @@ export async function GET(
     // Await params to fix the error
     const warTag = (await params).tag;
     console.log("API route: War tag:", warTag);
-    const data = await fetchFromClashAPI(
+    const data = await fetchFromAPI(
       `/clanwarleagues/wars/${encodeURIComponent(warTag)}`
     );
     console.log("API route: War league war data received");

@@ -1,5 +1,5 @@
+import { fetchFromAPI } from "@/lib/api";
 import { NextRequest, NextResponse } from "next/server";
-import { fetchFromClashAPI } from "@/lib/clash-api";
 
 type tParams = Promise<{ tag: string }>;
 
@@ -15,7 +15,7 @@ export async function GET(
     // Add the # back to the tag for the Clash API
     const clanTag = `#${tag}`;
     console.log("API route: Clan tag with #:", clanTag);
-    const data = await fetchFromClashAPI(
+    const data = await fetchFromAPI(
       `/clans/${encodeURIComponent(clanTag)}/warlog`
     );
     console.log("API route: War log data received");
