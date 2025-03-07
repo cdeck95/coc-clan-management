@@ -1,6 +1,7 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { format, formatDistanceToNow } from "date-fns";
+import { ClanWarLeagueWar, CurrentWar } from "@/types/clash";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -37,6 +38,21 @@ export function getWarStateColor(state: string) {
     default:
       return "bg-gray-500 hover:bg-gray-600";
   }
+}
+
+/**
+ * Determine the number of attacks per member based on war type
+ * @param war War object
+ * @returns Number of attacks per member (1 for CWL, 2 for regular war)
+ */
+export function getWarAttacksPerMember(
+  war: CurrentWar | ClanWarLeagueWar
+): number {
+  // Check if it's a CWL war (has warLeague property or is accessed via a war tag)
+  if ("warLeague" in war || "warTags" in war) {
+    return 1;
+  }
+  return 2;
 }
 
 /**
@@ -80,4 +96,40 @@ export function formatRelativeTime(dateString: string): string {
     console.error("Error formatting relative time:", error);
     return "Date error";
   }
+}
+
+/**
+ * Calculate and format the time remaining until a given end time
+ * @param endTimeString ISO timestamp string for the end time
+ * @returns Formatted time remaining string (e.g. "1h 30m 15s")
+ */
+export function calculateTimeRemaining(endTimeString: string): string {
+  const endTime = new Date(endTimeString).getTime();
+  const now = Date.now();
+
+  // If the end time has passed, return empty string
+  if (now >= endTime) {
+    return "";
+  }
+
+  // Calculate the difference in seconds
+  let diff = Math.floor((endTime - now) / 1000);
+
+  // Calculate hours, minutes, seconds
+  const hours = Math.floor(diff / 3600);
+  diff = diff % 3600;
+  const minutes = Math.floor(diff / 60);
+  const seconds = diff % 60;
+
+  // Format the time parts
+  let result = "";
+  if (hours > 0) {
+    result += `${hours}h `;
+  }
+  if (hours > 0 || minutes > 0) {
+    result += `${minutes.toString().padStart(2, "0")}m `;
+  }
+  result += `${seconds.toString().padStart(2, "0")}s`;
+
+  return result;
 }

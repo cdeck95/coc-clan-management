@@ -627,7 +627,9 @@ export async function getCurrentWar(clanTag: string) {
   }
 }
 
-export async function getWarLeagueGroup(clanTag: string) {
+export async function getWarLeagueGroup(
+  clanTag: string
+): Promise<ClanWarLeagueGroup> {
   try {
     // Remove # from the tag if present before encoding
     const cleanTag = clanTag.startsWith("#") ? clanTag.substring(1) : clanTag;

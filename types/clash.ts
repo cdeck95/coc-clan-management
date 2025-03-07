@@ -112,6 +112,7 @@ export interface CurrentWar {
   endTime: string;
   clan: WarClan;
   opponent: WarClan;
+  // Remove attacksPerMember as it's not part of the API response
 }
 
 export interface MemberNote {
@@ -192,6 +193,7 @@ export interface ClanWarLeagueWar {
   clan: WarClan;
   opponent: WarClan;
   warLeague?: WarLeague;
+  // Remove attacksPerMember as it's not part of the API response
 }
 
 // War-related types
@@ -283,4 +285,9 @@ export interface LeagueSeasonRanking {
 export interface WarLeague {
   id: number;
   name: string;
+  iconUrls: {
+    small: string;
+    medium: string;
+    large?: string;
+  };
 }
