@@ -91,6 +91,18 @@ export default function SideMenu() {
       icon: <Ban className="h-4 w-4" />,
       variant: path.startsWith("/banned") ? "default" : "ghost",
     },
+    {
+      title: "War Stats",
+      href: "/analytics/war",
+      icon: <Shield className="h-4 w-4" />,
+      variant: path.startsWith("/analytics/war") ? "default" : "ghost",
+    },
+    {
+      title: "Member Stats",
+      href: "/analytics/members",
+      icon: <Users className="h-4 w-4" />,
+      variant: path.startsWith("/analytics/members") ? "default" : "ghost",
+    },
   ];
 
   return (
