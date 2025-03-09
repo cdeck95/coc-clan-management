@@ -55,11 +55,12 @@ export const MOCK_CLAN_DATA: Clan = {
         },
       },
       trophies: 5500,
-      versusTrophies: 3000,
+      builderBaseTrophies: 3000,
       clanRank: 1,
       previousClanRank: 1,
       donations: 1200,
       donationsReceived: 400,
+      townHallLevel: 14,
     },
     {
       tag: "#PLAYER2",
@@ -78,11 +79,12 @@ export const MOCK_CLAN_DATA: Clan = {
         },
       },
       trophies: 5200,
-      versusTrophies: 2900,
+      builderBaseTrophies: 2900,
       clanRank: 2,
       previousClanRank: 2,
       donations: 1000,
       donationsReceived: 300,
+      townHallLevel: 13,
     },
     {
       tag: "#PLAYER3",
@@ -101,11 +103,12 @@ export const MOCK_CLAN_DATA: Clan = {
         },
       },
       trophies: 4800,
-      versusTrophies: 2800,
+      builderBaseTrophies: 2800,
       clanRank: 3,
       previousClanRank: 3,
       donations: 800,
       donationsReceived: 600,
+      townHallLevel: 15,
     },
     {
       tag: "#PLAYER4",
@@ -124,11 +127,12 @@ export const MOCK_CLAN_DATA: Clan = {
         },
       },
       trophies: 4500,
-      versusTrophies: 2700,
+      builderBaseTrophies: 2700,
       clanRank: 4,
       previousClanRank: 5,
       donations: 200,
       donationsReceived: 800,
+      townHallLevel: 16,
     },
     {
       tag: "#PLAYER5",
@@ -147,11 +151,12 @@ export const MOCK_CLAN_DATA: Clan = {
         },
       },
       trophies: 3800,
-      versusTrophies: 2200,
+      builderBaseTrophies: 2200,
       clanRank: 5,
       previousClanRank: 4,
       donations: 100,
       donationsReceived: 400,
+      townHallLevel: 12,
     },
   ],
   labels: [
@@ -556,6 +561,126 @@ export const MOCK_CWL_GROUP_DATA: ClanWarLeagueGroup = {
     },
     {
       warTags: ["#WAR7A", "#WAR7B", "#WAR7C", "#WAR7D"],
+    },
+  ],
+};
+
+// Mock player data for development and testing
+export const MOCK_PLAYER_DATA = {
+  tag: "#P8RUY922G",
+  name: "chrisdeck",
+  townHallLevel: 15,
+  townHallWeaponLevel: 5,
+  expLevel: 205,
+  trophies: 4222,
+  bestTrophies: 4604,
+  warStars: 1147,
+  attackWins: 22,
+  defenseWins: 3,
+  builderHallLevel: 10,
+  builderBaseTrophies: 2702,
+  bestBuilderBaseTrophies: 3354,
+  role: "coLeader",
+  warPreference: "in",
+  donations: 2997,
+  donationsReceived: 2715,
+  clanCapitalContributions: 1636248,
+  clan: {
+    tag: "#GCVL29VJ",
+    name: "War boiz",
+    clanLevel: 19,
+    badgeUrls: {
+      small:
+        "https://api-assets.clashofclans.com/badges/70/kSZzRg6HxeNXVn6oEgKdrOc6kQl8DinXYEVOuws9hP4.png",
+      large:
+        "https://api-assets.clashofclans.com/badges/512/kSZzRg6HxeNXVn6oEgKdrOc6kQl8DinXYEVOuws9hP4.png",
+      medium:
+        "https://api-assets.clashofclans.com/badges/200/kSZzRg6HxeNXVn6oEgKdrOc6kQl8DinXYEVOuws9hP4.png",
+    },
+  },
+  league: {
+    id: 29000019,
+    name: "Titan League III",
+    iconUrls: {
+      small:
+        "https://api-assets.clashofclans.com/leagues/72/L-HrwYpFbDwWjdmhJQiZiTRa_zXPPOgUTdmbsaq4meo.png",
+      tiny: "https://api-assets.clashofclans.com/leagues/36/L-HrwYpFbDwWjdmhJQiZiTRa_zXPPOgUTdmbsaq4meo.png",
+      medium:
+        "https://api-assets.clashofclans.com/leagues/288/L-HrwYpFbDwWjdmhJQiZiTRa_zXPPOgUTdmbsaq4meo.png",
+    },
+  },
+  achievements: [
+    {
+      name: "War Hero",
+      stars: 3,
+      value: 1147,
+      target: 1000,
+      info: "Score 1000 Stars for your clan in Clan War battles",
+      completionInfo: "Total Stars scored for clan in Clan War battles: 1147",
+      village: "home",
+    },
+    {
+      name: "Friend in Need",
+      stars: 3,
+      value: 74975,
+      target: 25000,
+      info: "Donate 25000 capacity worth of reinforcements to Clanmates",
+      completionInfo: "Total capacity donated: 74975",
+      village: "home",
+    },
+  ],
+  troops: [
+    {
+      name: "Barbarian",
+      level: 11,
+      maxLevel: 12,
+      village: "home",
+    },
+    {
+      name: "Archer",
+      level: 11,
+      maxLevel: 13,
+      village: "home",
+    },
+  ],
+  heroes: [
+    {
+      name: "Barbarian King",
+      level: 81,
+      maxLevel: 100,
+      village: "home",
+    },
+    {
+      name: "Archer Queen",
+      level: 86,
+      maxLevel: 100,
+      village: "home",
+    },
+  ],
+  spells: [
+    {
+      name: "Lightning Spell",
+      level: 10,
+      maxLevel: 12,
+      village: "home",
+    },
+    {
+      name: "Healing Spell",
+      level: 9,
+      maxLevel: 11,
+      village: "home",
+    },
+  ],
+  labels: [
+    {
+      id: 1,
+      name: "Clan Wars",
+      iconUrls: {
+        small:
+          "https://api-assets.clashofclans.com/labels/64/7qU7tQGERiVITVG0CPFov1-BnFldu4bMN2gXML5bLIU.png",
+        medium:
+          "https://api-assets.clashofclans.com/labels/128/7qU7tQGERiVITVG0CPFov1-BnFldu4bMN2gXML5bLIU.png",
+      },
     },
   ],
 };

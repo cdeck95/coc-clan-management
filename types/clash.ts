@@ -65,12 +65,24 @@ export interface ClanMember {
     };
   };
   trophies: number;
-  versusTrophies: number;
+  builderBaseTrophies: number;
   clanRank: number;
   previousClanRank: number;
   donations: number;
   donationsReceived: number;
-  townHallLevel?: number; // Add this property if not already present
+  playerHouse?: {
+    elements: [
+      {
+        id: number;
+        level: number;
+      }
+    ];
+  };
+  builderBaseLeague?: {
+    id: number;
+    name: string;
+  };
+  townHallLevel: number; // Add this property if not already present
 }
 
 // Define WarAttack first to avoid reference issues
@@ -256,15 +268,17 @@ export interface WarClanSummary {
   destructionPercentage: number;
 }
 
+export interface IconUrls {
+  small: string;
+  medium: string;
+  large?: string;
+}
+
 // Add new interfaces for the League API endpoints
 export interface League {
   id: number;
   name: string;
-  iconUrls: {
-    small: string;
-    medium: string;
-    large?: string;
-  };
+  iconUrls: IconUrls;
 }
 
 export interface LeagueSeason {
@@ -290,4 +304,101 @@ export interface WarLeague {
     medium: string;
     large?: string;
   };
+}
+
+// Detailed player information
+export interface Player {
+  tag: string;
+  name: string;
+  townHallLevel: number;
+  townHallWeaponLevel?: number;
+  expLevel: number;
+  trophies: number;
+  bestTrophies: number;
+  warStars: number;
+  attackWins: number;
+  defenseWins: number;
+  builderHallLevel: number;
+  builderBaseTrophies: number;
+  role: string;
+  warPreference: string;
+  donations: number;
+  donationsReceived: number;
+  clanCapitalContributions: number;
+  clan?: {
+    tag: string;
+    name: string;
+    clanLevel: number;
+    badgeUrls: BadgeUrls;
+  };
+  league?: {
+    id: number;
+    name: string;
+    iconUrls: IconUrls;
+  };
+  achievements: Achievement[];
+  labels: Label[];
+  troops: Troop[];
+  heroes: Hero[];
+  spells: Spell[];
+  versusBattleWins?: number;
+  // Custom fields for activity tracking
+  lastSeen?: string;
+  lastWarParticipation?: string | null;
+  // Add fields for detailed activity statistics
+  averageAttacksPerWar?: number;
+  warParticipationRate?: number;
+  averageStarsPerAttack?: number;
+}
+
+export interface Achievement {
+  name: string;
+  stars: number;
+  value: number;
+  target: number;
+  info: string;
+  completionInfo?: string;
+  village: string;
+}
+
+export interface Troop {
+  name: string;
+  level: number;
+  maxLevel: number;
+  village: string;
+}
+
+export interface Hero {
+  name: string;
+  level: number;
+  maxLevel: number;
+  village: string;
+  equipment?: Equipment[];
+}
+
+export interface Equipment {
+  name: string;
+  level: number;
+  maxLevel: number;
+  village: string;
+}
+
+export interface Spell {
+  name: string;
+  level: number;
+  maxLevel: number;
+  village: string;
+}
+
+export interface Label {
+  id: number;
+  name: string;
+  iconUrls: IconUrls;
+}
+
+// Enhance ClanMember with detailed player data
+export interface EnhancedClanMember extends ClanMember {
+  playerDetails?: Player;
+  activityScore?: number; // Calculate an activity score based on donations, war participation, etc.
+  inactivityDays?: number; // Days since last seen
 }

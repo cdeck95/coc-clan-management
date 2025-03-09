@@ -14,6 +14,7 @@ import {
   WarLeague,
   LeagueSeason,
   LeagueSeasonRanking,
+  Player,
 } from "@/types/clash";
 import {
   getObject,
@@ -25,6 +26,7 @@ import {
   MOCK_CLAN_DATA,
   MOCK_WAR_DATA,
   MOCK_CWL_GROUP_DATA,
+  MOCK_PLAYER_DATA,
 } from "@/lib/mock-data";
 import { getClashApiToken } from "@/lib/clash-token-manager";
 
@@ -47,6 +49,14 @@ function debugLog(...args: any[]) {
 // Helper function to encode special characters in tags
 const encodeTag = (tag: string) => {
   return encodeURIComponent(tag);
+};
+
+// Helper function to get request headers
+const getRequestHeaders = () => {
+  return {
+    Authorization: `Bearer ${process.env.CLASH_API_TOKEN}`,
+    "Content-Type": "application/json",
+  };
 };
 
 // Server-side API calls
@@ -689,4 +699,38 @@ export async function getWarLeagueWar(warTag: string) {
 
   if (!response.ok) throw new Error("Failed to fetch war league war");
   return response.json();
+}
+
+/**
+ * Get detailed information about a player by their tag
+ */
+export async function getPlayerInfo(playerTag: string): Promise<Player> {
+  // Remove # if it's included and encode the tag properly
+  const cleanTag = playerTag.startsWith("#")
+    ? playerTag.substring(1)
+    : playerTag;
+  const encodedTag = encodeURIComponent(`#${cleanTag}`);
+
+  try {
+    if (process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true") {
+      console.log("Using mock player data for", playerTag);
+      // Return a simplified mock player for now
+      return MOCK_PLAYER_DATA;
+    }
+
+    const response = await fetch(`${API_BASE_URL}/players/${encodedTag}`, {
+      headers: getRequestHeaders(),
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch player data: ${response.status}`);
+    }
+
+    return response.json();
+  } catch (error) {
+    console.error("Error fetching player data:", error);
+    // Fallback to mock data in case of error
+    return MOCK_PLAYER_DATA;
+  }
 }
