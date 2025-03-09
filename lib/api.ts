@@ -638,7 +638,7 @@ export async function getWarLeagueGroup(
       `/api/clan/${cleanTag}/currentwar/leaguegroup`,
       baseUrl
     );
-    console.log("Fetching current war from:", url.toString());
+    console.log("Fetching current war league group from:", url.toString());
     const response = await fetch(url.toString(), {
       method: "GET",
       headers: { "Content-Type": "application/json" },

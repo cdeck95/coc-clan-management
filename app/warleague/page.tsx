@@ -162,6 +162,9 @@ export default function WarLeaguePage() {
       };
     });
 
+    console.log("clanStats", clanStats);
+    console.log("leagueGroup", leagueGroup);
+
     // Process all wars
     Object.values(leagueWars).forEach((war) => {
       if (war.state !== "warEnded") return;
@@ -170,11 +173,19 @@ export default function WarLeaguePage() {
       const clan2 = war.opponent;
 
       // Add war results
-      if (clan1.stars > clan2.stars) {
+      if (
+        clan1.stars > clan2.stars ||
+        (clan1.stars === clan2.stars &&
+          clan1.destructionPercentage > clan2.destructionPercentage)
+      ) {
         clanStats[clan1.tag].wins++;
         clanStats[clan2.tag].losses++;
         clanStats[clan1.tag].stars += 10;
-      } else if (clan2.stars > clan1.stars) {
+      } else if (
+        clan2.stars > clan1.stars ||
+        (clan2.stars === clan1.stars &&
+          clan2.destructionPercentage > clan1.destructionPercentage)
+      ) {
         clanStats[clan2.tag].wins++;
         clanStats[clan1.tag].losses++;
         clanStats[clan2.tag].stars += 10;

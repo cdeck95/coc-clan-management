@@ -8,14 +8,15 @@ export async function GET(
   { params }: { params: tParams }
 ) {
   try {
-    console.log("API route: Fetching war league war...");
+    // console.log("API route: Fetching war league war...");
     // Await params to fix the error
     const warTag = (await params).tag;
-    console.log("API route: War tag:", warTag);
+    // console.log("API route: War tag:", warTag);
     const data = await fetchFromAPI(
       `/clanwarleagues/wars/${encodeURIComponent(warTag)}`
     );
     console.log("API route: War league war data received");
+    console.log(data);
     return NextResponse.json(data);
   } catch (error) {
     console.error("API route: Error fetching war league war:", error);
