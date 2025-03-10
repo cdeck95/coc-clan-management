@@ -219,9 +219,7 @@ export default function WarLeaguePage() {
 
     // Convert to array and sort
     return Object.values(clanStats).sort((a, b) => {
-      // Sort by wins first
-      if (a.wins !== b.wins) return b.wins - a.wins;
-      // Then by stars
+      // Sort by stars first
       if (a.stars !== b.stars) return b.stars - a.stars;
       // Then by destruction percentage
       return b.destruction - a.destruction;

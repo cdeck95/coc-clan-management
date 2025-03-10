@@ -291,3 +291,69 @@ export interface WarLeague {
     large?: string;
   };
 }
+
+// Add the missing Member and ClanInfo types
+
+export interface Member {
+  tag: string;
+  name: string;
+  role: string;
+  expLevel: number;
+  league?: {
+    id: number;
+    name: string;
+    iconUrls: {
+      small: string;
+      tiny: string;
+      medium: string;
+    };
+  };
+  trophies: number;
+  versusTrophies?: number;
+  clanRank: number;
+  previousClanRank: number;
+  donations: number;
+  donationsReceived: number;
+}
+
+export interface ClanInfo {
+  tag: string;
+  name: string;
+  type: string;
+  description: string;
+  location?: {
+    id: number;
+    name: string;
+    isCountry: boolean;
+    countryCode: string;
+  };
+  badgeUrls: {
+    small: string;
+    large: string;
+    medium: string;
+  };
+  clanLevel: number;
+  clanPoints: number;
+  clanVersusPoints: number;
+  requiredTrophies: number;
+  warFrequency: string;
+  warWinStreak: number;
+  warWins: number;
+  warTies: number;
+  warLosses: number;
+  isWarLogPublic: boolean;
+  warLeague?: {
+    id: number;
+    name: string;
+  };
+  members: number;
+  memberList: Member[];
+  labels: {
+    id: number;
+    name: string;
+    iconUrls: {
+      small: string;
+      medium: string;
+    };
+  }[];
+}
