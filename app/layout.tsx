@@ -6,6 +6,7 @@ import SideMenu from "@/components/sidemenu";
 import MenuHeader from "@/components/menuheader";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Toaster } from "@/components/ui/sonner";
+import { Analytics } from "@vercel/analytics/react";
 
 export const metadata: Metadata = {
   title: "War Boiz Clan Management",
@@ -40,6 +41,7 @@ export default function RootLayout({
             </div>
           </div>
           <Toaster richColors />
+          <Analytics />
         </ThemeProvider>
       </body>
     </html>
