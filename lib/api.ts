@@ -720,3 +720,29 @@ export async function fetchMembersData(
     throw error;
   }
 }
+
+export async function fetchWarLeagueData(clanTag: string, fetchWars = true) {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+    const url = new URL("/api/storage/batch/warleague", baseUrl);
+    const response = await fetch(url.toString(), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        clanTag,
+        fetchWars,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch war league data: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching war league data:", error);
+    throw error;
+  }
+}

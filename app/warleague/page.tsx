@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   AlertCircle,
   Trophy,
@@ -22,8 +21,9 @@ import {
   BarChart3,
   Calendar,
   ArrowLeft,
+  Loader2,
 } from "lucide-react";
-import { getWarLeagueGroup, getWarLeagueWar } from "@/lib/api";
+import { fetchWarLeagueData } from "@/lib/api";
 import { ClanWarLeagueGroup, ClanWarLeagueWar } from "@/types/clash";
 import { calculateTimeRemaining } from "@/lib/utils";
 import {
@@ -58,7 +58,6 @@ export default function WarLeaguePage() {
 
   const router = useRouter();
   const clanTag = process.env.NEXT_PUBLIC_CLAN_TAG || "#GCVL29VJ";
-  const cleanClanTag = clanTag.replace("#", "");
 
   // Helper to determine if we're in a CWL period
   const isInCWL =
@@ -104,6 +103,7 @@ export default function WarLeaguePage() {
   const getCurrentRoundIndex = () => {
     if (!leagueGroup || !leagueGroup.rounds) return 0;
 
+    // First look for active wars (in preparation or battle day)
     for (let i = 0; i < leagueGroup.rounds.length; i++) {
       const roundWars = getClanWarsForRound(i);
       const hasActiveWar = roundWars.some(
@@ -309,55 +309,29 @@ export default function WarLeaguePage() {
     return () => clearInterval(interval);
   }, [leagueWars, selectedRound, leagueGroup, selectedWar]);
 
-  // Fetch CWL data
+  // Fetch CWL data using our new batch endpoint
   useEffect(() => {
     async function fetchData() {
       try {
         setLoading(true);
         setError(null);
 
-        // Fetch CWL group
-        const leagueGroupData = await getWarLeagueGroup(cleanClanTag);
-        setLeagueGroup(leagueGroupData);
+        // Use our batch endpoint to fetch all data at once
+        const { group, wars } = await fetchWarLeagueData(clanTag);
 
-        // If CWL group found, fetch all war data
-        if (
-          leagueGroupData &&
-          leagueGroupData.rounds &&
-          leagueGroupData.rounds.length > 0
-        ) {
-          // Collect all war tags
-          const allWarTags: string[] = [];
-          leagueGroupData.rounds.forEach((round) => {
-            if (round && round.warTags) {
-              allWarTags.push(...round.warTags);
-            }
-          });
+        setLeagueGroup(group);
+        setLeagueWars(wars || {});
 
-          if (allWarTags.length > 0) {
-            const warPromises = allWarTags.map((tag) => getWarLeagueWar(tag));
-            const wars = await Promise.all(warPromises);
+        if (group && group.rounds && group.rounds.length > 0) {
+          // Auto-select current round
+          const currentRound = getCurrentRoundIndex();
+          setSelectedRound(currentRound);
 
-            // Create a map of war tag to war data
-            const warMap: { [key: string]: ClanWarLeagueWar } = {};
-            allWarTags.forEach((tag, index) => {
-              if (tag && wars[index]) {
-                warMap[tag] = wars[index];
-              }
-            });
-
-            setLeagueWars(warMap);
-
-            // Auto-select current round
-            const currentRound = getCurrentRoundIndex();
-            setSelectedRound(currentRound);
-
-            // Find our war in the current round
-            const roundWars = getClanWarsForRound(currentRound);
-            const ourWar = roundWars.find((item) => item?.isClanInWar);
-            if (ourWar) {
-              setSelectedWar(ourWar.war);
-            }
+          // Find our war in the current round
+          const roundWars = getClanWarsForRound(currentRound);
+          const ourWar = roundWars.find((item) => item?.isClanInWar);
+          if (ourWar) {
+            setSelectedWar(ourWar.war);
           }
         }
       } catch (err) {
@@ -369,7 +343,7 @@ export default function WarLeaguePage() {
     }
 
     fetchData();
-  }, [cleanClanTag]);
+  }, [clanTag]);
 
   // Handle back to regular war
   const navigateToRegularWar = () => {
@@ -464,15 +438,20 @@ export default function WarLeaguePage() {
     }
   };
 
+  // Show loading state during initial fetch
   if (loading) {
     return (
       <div className="container mx-auto py-6 space-y-4">
         <h1 className="text-3xl font-bold">Clan War League</h1>
-        <Skeleton className="h-96 w-full" />
+        <div className="flex flex-col items-center justify-center p-12">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mb-2" />
+          <p className="text-muted-foreground">Loading war league data...</p>
+        </div>
       </div>
     );
   }
 
+  // Show error state if fetch failed
   if (error) {
     return (
       <div className="container mx-auto py-6 space-y-4">
@@ -487,6 +466,7 @@ export default function WarLeaguePage() {
     );
   }
 
+  // Rest of the component remains the same
   return (
     <div className="container mx-auto py-4 sm:py-6 space-y-4 sm:space-y-6 px-2 sm:px-4">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0">

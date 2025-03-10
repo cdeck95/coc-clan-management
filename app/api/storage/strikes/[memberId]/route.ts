@@ -20,13 +20,15 @@ const s3Client = new S3Client({
 
 const STRIKES_PREFIX = "strikes/";
 
-// Fixed type definition - params are not a Promise in Next.js App Router
+type tParams = Promise<{ memberId: string }>;
+
 export async function GET(
   request: NextRequest,
-  { params }: { params: { memberId: string } }
+  { params }: { params: tParams }
 ) {
   try {
-    const { memberId } = params;
+    // Await params to fix the error
+    const memberId = (await params).memberId;
 
     // First get all strikes
     const command = new ListObjectsV2Command({
