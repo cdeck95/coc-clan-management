@@ -690,3 +690,33 @@ export async function getWarLeagueWar(warTag: string) {
   if (!response.ok) throw new Error("Failed to fetch war league war");
   return response.json();
 }
+
+export async function fetchMembersData(
+  memberIds: string[],
+  options = { notes: true, strikes: true }
+) {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+    const url = new URL("/api/storage/batch", baseUrl);
+    const response = await fetch(url.toString(), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        memberIds,
+        fetchNotes: options.notes,
+        fetchStrikes: options.strikes,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch batch data: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching members data:", error);
+    throw error;
+  }
+}

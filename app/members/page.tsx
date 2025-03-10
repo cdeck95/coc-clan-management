@@ -7,6 +7,18 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { MembersList } from "@/components/members-list";
+import { Suspense } from "react";
+import { Loader2 } from "lucide-react";
+
+// Loading component
+function LoadingMembers() {
+  return (
+    <div className="flex justify-center items-center p-12">
+      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <span className="ml-2 text-muted-foreground">Loading members...</span>
+    </div>
+  );
+}
 
 export default async function MembersPage() {
   const clanData = await getClanInfo();
@@ -51,7 +63,9 @@ export default async function MembersPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <MembersList members={sortedMembers} />
+          <Suspense fallback={<LoadingMembers />}>
+            <MembersList members={sortedMembers} />
+          </Suspense>
         </CardContent>
       </Card>
     </div>

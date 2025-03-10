@@ -13,6 +13,7 @@ import {
   ChevronRight,
   AlertCircle,
   FileText,
+  Loader2,
 } from "lucide-react";
 import { cn, getDonationRatio, getRoleColor } from "@/lib/utils";
 import { MemberNoteDialog } from "./member-note-dialog";
@@ -23,6 +24,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import {
+  fetchMembersData,
   getMemberNotesByMemberId,
   getMemberStrikesByMemberId,
 } from "@/lib/api";
@@ -42,46 +44,83 @@ export function MembersList({ members }: MembersListProps) {
     Record<string, MemberStrike[]>
   >({});
   const [loadingData, setLoadingData] = useState<Record<string, boolean>>({});
+  const [initialDataLoaded, setInitialDataLoaded] = useState(false);
 
   useEffect(() => {
-    // load all member data when component mounts
-    members.forEach((member) => {
-      loadMemberData(member.tag);
-    });
+    // Load data for all members in a single batch request
+    loadBatchMemberData();
   }, []);
 
-  const handleToggleExpand = async (member: ClanMember) => {
+  const handleToggleExpand = (member: ClanMember) => {
     const newExpanded = { ...expanded };
     newExpanded[member.tag] = !expanded[member.tag];
     setExpanded(newExpanded);
-
-    // Load member notes and strikes when expanding
-    if (
-      newExpanded[member.tag] &&
-      !memberNotes[member.tag] &&
-      !loadingData[member.tag]
-    ) {
-      await loadMemberData(member.tag);
-    }
   };
 
-  const loadMemberData = async (memberId: string) => {
-    setLoadingData((prev) => ({ ...prev, [memberId]: true }));
-    try {
-      const notes = await getMemberNotesByMemberId(memberId);
-      const strikes = await getMemberStrikesByMemberId(memberId);
+  const loadBatchMemberData = async () => {
+    setLoadingData((prev) => {
+      const newState = { ...prev };
+      members.forEach((member) => {
+        newState[member.tag] = true;
+      });
+      return newState;
+    });
 
-      setMemberNotes((prev) => ({ ...prev, [memberId]: notes }));
-      setMemberStrikes((prev) => ({ ...prev, [memberId]: strikes }));
+    try {
+      // Get all member IDs
+      const memberIds = members.map((member) => member.tag);
+
+      // Fetch data for all members in one request
+      const batchData = await fetchMembersData(memberIds);
+
+      // Update state with batch results
+      setMemberNotes((prev) => {
+        const newNotes = { ...prev };
+        Object.keys(batchData).forEach((memberId) => {
+          newNotes[memberId] = batchData[memberId].notes || [];
+        });
+        return newNotes;
+      });
+
+      setMemberStrikes((prev) => {
+        const newStrikes = { ...prev };
+        Object.keys(batchData).forEach((memberId) => {
+          newStrikes[memberId] = batchData[memberId].strikes || [];
+        });
+        return newStrikes;
+      });
+
+      setInitialDataLoaded(true);
     } catch (error) {
-      console.error(`Error loading data for ${memberId}:`, error);
+      console.error(`Error loading batch data:`, error);
     } finally {
-      setLoadingData((prev) => ({ ...prev, [memberId]: false }));
+      setLoadingData((prev) => {
+        const newState = { ...prev };
+        members.forEach((member) => {
+          newState[member.tag] = false;
+        });
+        return newState;
+      });
     }
   };
 
   const handleDataRefresh = async (memberId: string) => {
-    await loadMemberData(memberId);
+    setLoadingData((prev) => ({ ...prev, [memberId]: true }));
+
+    try {
+      // For individual refreshes, we can still use the single member endpoints
+      const [notes, strikes] = await Promise.all([
+        getMemberNotesByMemberId(memberId),
+        getMemberStrikesByMemberId(memberId),
+      ]);
+
+      setMemberNotes((prev) => ({ ...prev, [memberId]: notes }));
+      setMemberStrikes((prev) => ({ ...prev, [memberId]: strikes }));
+    } catch (error) {
+      console.error(`Error refreshing data for ${memberId}:`, error);
+    } finally {
+      setLoadingData((prev) => ({ ...prev, [memberId]: false }));
+    }
   };
 
   // Determine badge colors based on donation ratio
@@ -117,6 +156,17 @@ export function MembersList({ members }: MembersListProps) {
   }, []);
 
   console.log("IsMobile", isMobile);
+
+  // If initial data is still loading, display a loading state for the entire list
+  if (!initialDataLoaded && members.length > 0) {
+    return (
+      <div className="flex flex-col items-center justify-center p-12">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mb-2" />
+        <p className="text-muted-foreground">Loading member data...</p>
+      </div>
+    );
+  }
+
   if (isMobile) {
     return (
       <div className="container mx-auto px-4 py-6 space-y-4">
