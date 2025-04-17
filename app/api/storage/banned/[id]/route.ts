@@ -21,13 +21,17 @@ const s3Client = new S3Client({
 
 const BANNED_PREFIX = "banned/";
 
+// Fixed type definition - params are not a Promise in Next.js App Router
+type tParams = Promise<{ id: string }>;
+
 // GET a specific banned member by ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: tParams }
 ) {
   try {
-    const id = params.id;
+    // Await params to fix the error
+    const id = (await params).id;
 
     if (!id) {
       return NextResponse.json(
@@ -67,10 +71,10 @@ export async function GET(
 // DELETE a banned member by ID
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: tParams }
 ) {
   try {
-    const id = params.id;
+    const id = (await params).id;
 
     if (!id) {
       return NextResponse.json(
@@ -101,10 +105,10 @@ export async function DELETE(
 // PUT to update a banned member
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: tParams }
 ) {
   try {
-    const id = params.id;
+    const id = (await params).id;
     const bannedMember = (await request.json()) as BannedMember;
 
     if (!id) {
