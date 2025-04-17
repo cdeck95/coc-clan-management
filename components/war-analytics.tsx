@@ -156,7 +156,7 @@ export function WarAnalytics({ warData }: WarAnalyticsProps) {
           analysisResults.push({
             ...baseAnalysis,
             type: "blunder",
-            reason: `First attack not on mirror (#${member.mapPosition} attacked #${defenderMember.mapPosition} instead of #${mirror.mapPosition})`,
+            reason: `Did not attack their mirror`,
           });
         }
 
@@ -209,51 +209,54 @@ export function WarAnalytics({ warData }: WarAnalyticsProps) {
   }
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className="p-2">
+      <CardHeader className="p-2">
         <CardTitle>War Analytics</CardTitle>
         <CardDescription>Notable attacks in this war</CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-6">
+      <CardContent className="p-2">
+        <div className="space-y-6 p-0">
           {/* Great attacks section */}
-          <div>
+          <div className="p-0">
             <h3 className="text-lg font-semibold flex items-center mb-2">
               <Award className="h-5 w-5 mr-2 text-green-500" />
               Great Attacks
             </h3>
             {greatAttacks.length > 0 ? (
-              <div className="space-y-2">
+              <div className="space-y-2 p-0">
                 {greatAttacks.map((attack, idx) => (
                   <Popover key={idx}>
                     <PopoverTrigger asChild>
-                      <div className="flex items-center gap-2 p-2 border rounded-md bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900 cursor-pointer hover:bg-green-100 dark:hover:bg-green-950/30 transition-colors">
-                        <div className="font-medium truncate max-w-[150px] sm:max-w-full">
-                          {attack.attackerName}
+                      <div className="flex justify-between w-full items-center gap-2 p-2 border rounded-md bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900 cursor-pointer hover:bg-green-100 dark:hover:bg-green-950/30 transition-colors">
+                        <div className="grid grid-cols-1 gap-1">
+                          <div className="flex flex0-row gap-2 items-center font-medium truncate min-w-fit">
+                            {attack.attackerName}{" "}
+                            {attack.attackerTH > attack.defenderTH && (
+                              <ArrowDown className="h-4 w-4 text-green-500" />
+                            )}
+                            {attack.defenderPosition <
+                              attack.attackerPosition && (
+                              <ArrowUp className="h-4 w-4 text-green-500" />
+                            )}
+                          </div>
+
+                          <Label className="text-xs">{attack.reason}</Label>
                         </div>
-                        <Badge variant="outline" className="bg-primary/10">
-                          TH{attack.attackerTH}
-                        </Badge>
-                        {attack.attackerTH > attack.defenderTH && (
-                          <ArrowDown className="h-4 w-4 text-green-500" />
-                        )}
-                        {attack.defenderPosition < attack.attackerPosition && (
-                          <ArrowUp className="h-4 w-4 text-green-500" />
-                        )}
-                        <Label className="text-xs">{attack.reason}</Label>
-                        <div className="flex items-center gap-1 ml-auto">
-                          {Array(attack.stars)
-                            .fill(0)
-                            .map((_, i) => (
-                              <Star
-                                key={i}
-                                className="h-4 w-4 fill-yellow-500 text-yellow-500"
-                              />
-                            ))}
+                        <div className="grid grid-cols-1 gap-2">
+                          <div className="flex items-center gap-1 ml-auto">
+                            {Array(attack.stars)
+                              .fill(0)
+                              .map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className="h-4 w-4 fill-yellow-500 text-yellow-500"
+                                />
+                              ))}
+                          </div>
+                          <Badge className="ml-1 bg-green-500">
+                            {attack.destructionPercentage}%
+                          </Badge>
                         </div>
-                        <Badge className="ml-1 bg-green-500">
-                          {attack.destructionPercentage}%
-                        </Badge>
                       </div>
                     </PopoverTrigger>
                     <PopoverContent side="top" align="end" className="w-80 p-0">
@@ -313,51 +316,54 @@ export function WarAnalytics({ warData }: WarAnalyticsProps) {
           </div>
 
           {/* Blunders section */}
-          <div>
+          <div className="p-0">
             <h3 className="text-lg font-semibold flex items-center mb-2">
               <AlertTriangle className="h-5 w-5 mr-2 text-amber-500" />
               Attack Opportunities
             </h3>
             {blunders.length > 0 ? (
-              <div className="space-y-2">
+              <div className="space-y-2 p-0">
                 {blunders.map((attack, idx) => (
                   <Popover key={idx}>
                     <PopoverTrigger asChild>
-                      <div className="flex items-center gap-2 p-2 border rounded-md bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900 cursor-pointer hover:bg-amber-100 dark:hover:bg-amber-950/30 transition-colors">
-                        <div className="font-medium truncate max-w-[150px] sm:max-w-full">
-                          {attack.attackerName}
+                      <div className="flex justify-between w-full items-center gap-2 p-2 border rounded-md bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900 cursor-pointer hover:bg-green-100 dark:hover:bg-green-950/30 transition-colors">
+                        <div className="grid grid-cols-1 gap-1">
+                          <div className="flex flex0-row gap-2 items-center font-medium truncate max-w-[80%]">
+                            {attack.attackerName}{" "}
+                            {attack.attackerTH > attack.defenderTH && (
+                              <ArrowDown className="h-4 w-4 text-green-500" />
+                            )}
+                            {attack.defenderPosition <
+                              attack.attackerPosition && (
+                              <ArrowUp className="h-4 w-4 text-green-500" />
+                            )}
+                          </div>
+
+                          <Label className="text-xs">{attack.reason}</Label>
                         </div>
-                        <Badge variant="outline" className="bg-primary/10">
-                          TH{attack.attackerTH}
-                        </Badge>
-                        {attack.attackerTH > attack.defenderTH && (
-                          <ArrowDown className="h-4 w-4 text-red-500" />
-                        )}
-                        {attack.defenderPosition < attack.attackerPosition && (
-                          <ArrowUp className="h-4 w-4 text-blue-500" />
-                        )}
-                        <Label className="text-xs">{attack.reason}</Label>
-                        <div className="flex items-center gap-1 ml-auto">
-                          {Array(attack.stars)
-                            .fill(0)
-                            .map((_, i) => (
-                              <Star
-                                key={i}
-                                className="h-4 w-4 fill-yellow-500 text-yellow-500"
-                              />
-                            ))}
-                          {Array(3 - attack.stars)
-                            .fill(0)
-                            .map((_, i) => (
-                              <Star
-                                key={i}
-                                className="h-4 w-4 text-muted-foreground/30"
-                              />
-                            ))}
+                        <div className="grid grid-cols-1 gap-2">
+                          <div className="flex items-center gap-1 ml-auto">
+                            {Array(attack.stars)
+                              .fill(0)
+                              .map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className="h-4 w-4 fill-yellow-500 text-yellow-500"
+                                />
+                              ))}
+                            {Array(3 - attack.stars)
+                              .fill(0)
+                              .map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className="h-4 w-4 text-muted-foreground/30"
+                                />
+                              ))}
+                          </div>
+                          <Badge className="ml-1 bg-amber-500">
+                            {attack.destructionPercentage}%
+                          </Badge>
                         </div>
-                        <Badge className="ml-1 bg-amber-500">
-                          {attack.destructionPercentage}%
-                        </Badge>
                       </div>
                     </PopoverTrigger>
                     <PopoverContent side="top" align="end" className="w-80 p-0">
