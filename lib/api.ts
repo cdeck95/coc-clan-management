@@ -15,12 +15,7 @@ import {
   LeagueSeason,
   LeagueSeasonRanking,
 } from "@/types/clash";
-import {
-  getObject,
-  putObject,
-  deleteObject,
-  listObjects,
-} from "@/lib/aws-client";
+import { getObject, putObject, listObjects } from "@/lib/aws-client";
 import {
   MOCK_CLAN_DATA,
   MOCK_WAR_DATA,
@@ -34,7 +29,6 @@ const CLAN_TAG = process.env.NEXT_PUBLIC_CLAN_TAG || "#GCVL29VJ";
 
 // S3 key prefixes
 const EFFICIENCY_PREFIX = "efficiency/";
-const BANNED_PREFIX = "banned/";
 
 // Helper for debug logging
 const DEBUG = true;
@@ -323,6 +317,39 @@ export async function getMemberNotesByMemberId(
   }
 }
 
+export async function updateMemberNote(note: MemberNote): Promise<void> {
+  try {
+    debugLog("Updating note via API:", note);
+
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+    const url = new URL(
+      `/api/storage/notes/${encodeURIComponent(note.memberId)}`,
+      baseUrl
+    );
+    console.log("Updating note at:", url.toString());
+
+    const response = await fetch(url.toString(), {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(note),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(
+        `Failed to update note: ${errorData.error || response.status}`
+      );
+    }
+
+    debugLog("Note updated successfully");
+  } catch (error) {
+    console.error("Error updating member note:", error);
+    throw error;
+  }
+}
+
 // Strikes - Updated for server-side API
 export async function getMemberStrikes(): Promise<MemberStrike[]> {
   try {
@@ -433,6 +460,38 @@ export async function getMemberStrikesByMemberId(
   } catch (error) {
     console.error(`Error getting strikes for member ${memberId}:`, error);
     return []; // Return empty array on error
+  }
+}
+
+export async function updateMemberStrike(strike: MemberStrike): Promise<void> {
+  try {
+    debugLog("Updating strike via API:", strike);
+
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+    const url = new URL(
+      `/api/storage/strikes/${encodeURIComponent(strike.memberId)}`,
+      baseUrl
+    );
+
+    const response = await fetch(url.toString(), {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(strike),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(
+        `Failed to update strike: ${errorData.error || response.status}`
+      );
+    }
+
+    debugLog("Strike updated successfully");
+  } catch (error) {
+    console.error("Error updating member strike:", error);
+    throw error;
   }
 }
 
@@ -548,29 +607,53 @@ export async function updateEfficiencyFromWar(
 // Banned Members tracking
 export async function getBannedMembers(): Promise<BannedMember[]> {
   try {
-    const objects: { Key?: string }[] = await listObjects(BANNED_PREFIX);
-    const bannedList: BannedMember[] = [];
+    debugLog("Getting all banned members via API");
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+    const url = new URL("/api/storage/banned", baseUrl);
 
-    for (const object of objects) {
-      if (object.Key) {
-        const member = (await getObject(object.Key)) as BannedMember;
-        if (member) {
-          bannedList.push(member);
-        }
-      }
+    console.log("Fetching banned members from:", url.toString());
+    const response = await fetch(url.toString(), {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch banned members: ${response.status}`);
     }
 
-    return bannedList;
+    const bannedMembers = await response.json();
+    debugLog(`Found ${bannedMembers.length} total banned members`);
+    return bannedMembers;
   } catch (error) {
     console.error("Error getting banned members:", error);
-    return [];
+    return []; // Return empty array on error
   }
 }
 
 export async function saveBannedMember(member: BannedMember): Promise<void> {
   try {
-    const key = `${BANNED_PREFIX}${member.id}`;
-    await putObject(key, member);
+    debugLog("Saving banned member via API:", member);
+
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+    const url = new URL("/api/storage/banned", baseUrl);
+
+    console.log("Saving banned member to:", url.toString());
+    const response = await fetch(url.toString(), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(member),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(
+        `Failed to save banned member: ${errorData.error || response.status}`
+      );
+    }
+
+    debugLog("Banned member saved successfully");
   } catch (error) {
     console.error("Error saving banned member:", error);
     throw error;
@@ -579,10 +662,95 @@ export async function saveBannedMember(member: BannedMember): Promise<void> {
 
 export async function removeBannedMember(id: string): Promise<void> {
   try {
-    const key = `${BANNED_PREFIX}${id}`;
-    await deleteObject(key);
+    debugLog(`Deleting banned member ${id} via API`);
+
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+    const url = new URL(
+      `/api/storage/banned/${encodeURIComponent(id)}`,
+      baseUrl
+    );
+
+    console.log("Deleting banned member from:", url.toString());
+    const response = await fetch(url.toString(), {
+      method: "DELETE",
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(
+        `Failed to delete banned member: ${errorData.error || response.status}`
+      );
+    }
+
+    debugLog("Banned member deleted successfully");
   } catch (error) {
-    console.error("Error removing banned member:", error);
+    console.error("Error deleting banned member:", error);
+    throw error;
+  }
+}
+
+export async function getBannedMemberById(
+  id: string
+): Promise<BannedMember | null> {
+  try {
+    debugLog(`Getting banned member ${id} via API`);
+
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+    const url = new URL(
+      `/api/storage/banned/${encodeURIComponent(id)}`,
+      baseUrl
+    );
+
+    console.log("Fetching banned member from:", url.toString());
+    const response = await fetch(url.toString(), {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        return null;
+      }
+      throw new Error(`Failed to fetch banned member: ${response.status}`);
+    }
+
+    const bannedMember = await response.json();
+    return bannedMember;
+  } catch (error) {
+    console.error(`Error getting banned member ${id}:`, error);
+    return null;
+  }
+}
+
+export async function updateBannedMember(member: BannedMember): Promise<void> {
+  try {
+    debugLog("Updating banned member via API:", member);
+
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+    const url = new URL(
+      `/api/storage/banned/${encodeURIComponent(member.id)}`,
+      baseUrl
+    );
+
+    console.log("Updating banned member at:", url.toString());
+    const response = await fetch(url.toString(), {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(member),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(
+        `Failed to update banned member: ${errorData.error || response.status}`
+      );
+    }
+
+    debugLog("Banned member updated successfully");
+  } catch (error) {
+    console.error("Error updating banned member:", error);
     throw error;
   }
 }
@@ -596,6 +764,49 @@ export async function isMemberBanned(
   } catch (error) {
     console.error(`Error checking if member ${tag} is banned:`, error);
     return null;
+  }
+}
+
+/**
+ * Checks if a member is on the banned list
+ * @param memberId The tag of the member to check
+ * @returns Object containing isBanned status and the banned member object if found
+ */
+export async function checkIfMemberIsBanned(memberId: string): Promise<{
+  isBanned: boolean;
+  bannedMember: BannedMember | null;
+}> {
+  try {
+    // Get all banned members
+    let bannedMembers: BannedMember[] = [];
+
+    try {
+      bannedMembers = await getBannedMembers();
+    } catch (error) {
+      // Log the error but continue with empty array
+      console.error("Error fetching banned members list:", error);
+      // Return early with default values if S3 is unavailable
+      return {
+        isBanned: false,
+        bannedMember: null,
+      };
+    }
+
+    // Find the member in the banned list
+    const foundMember = bannedMembers.find(
+      (banned) => banned.tag.toLowerCase() === memberId.toLowerCase()
+    );
+
+    return {
+      isBanned: !!foundMember,
+      bannedMember: foundMember || null,
+    };
+  } catch (error) {
+    console.error("Error checking if member is banned:", error);
+    return {
+      isBanned: false,
+      bannedMember: null,
+    };
   }
 }
 

@@ -3,6 +3,8 @@ import {
   S3Client,
   ListObjectsV2Command,
   GetObjectCommand,
+  PutObjectCommand,
+  DeleteObjectCommand,
 } from "@aws-sdk/client-s3";
 import { MemberStrike } from "@/types/clash";
 
@@ -20,11 +22,10 @@ const s3Client = new S3Client({
 
 const STRIKES_PREFIX = "strikes/";
 
-type tParams = Promise<{ memberId: string }>;
-
+// GET strikes for a specific member
 export async function GET(
   request: NextRequest,
-  { params }: { params: tParams }
+  { params }: { params: { memberId: string } }
 ) {
   try {
     // Await params to fix the error
@@ -76,6 +77,127 @@ export async function GET(
     console.error(`Error fetching strikes for member`, error);
     return NextResponse.json(
       { error: `Failed to fetch strikes for member` },
+      { status: 500 }
+    );
+  }
+}
+
+// PUT to update a strike for a specific member
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { memberId: string } }
+) {
+  try {
+    const { memberId } = params;
+    const strike = (await request.json()) as MemberStrike;
+
+    // Validate the strike
+    if (!strike.id || !strike.memberId || !strike.reason) {
+      return NextResponse.json(
+        { error: "Invalid strike data" },
+        { status: 400 }
+      );
+    }
+
+    // Ensure the memberId in the URL matches the one in the body
+    if (memberId !== strike.memberId) {
+      return NextResponse.json(
+        { error: "Member ID mismatch between URL and body" },
+        { status: 400 }
+      );
+    }
+
+    const key = `${STRIKES_PREFIX}${strike.id}`;
+
+    // Check if strike exists before updating
+    try {
+      const getCommand = new GetObjectCommand({
+        Bucket: bucketName,
+        Key: key,
+      });
+      await s3Client.send(getCommand);
+    } catch (error: unknown) {
+      console.log("Error editing strike:", error);
+      return NextResponse.json({ error: "Strike not found" }, { status: 404 });
+    }
+
+    const command = new PutObjectCommand({
+      Bucket: bucketName,
+      Key: key,
+      Body: JSON.stringify(strike),
+      ContentType: "application/json",
+    });
+
+    await s3Client.send(command);
+
+    return NextResponse.json({ success: true, strike });
+  } catch (error) {
+    console.error("Error updating strike:", error);
+    return NextResponse.json(
+      { error: "Failed to update strike" },
+      { status: 500 }
+    );
+  }
+}
+
+// DELETE a strike for a specific member
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { memberId: string } }
+) {
+  try {
+    const { memberId } = params;
+    const { searchParams } = new URL(request.url);
+    const strikeId = searchParams.get("id");
+
+    if (!strikeId) {
+      return NextResponse.json(
+        { error: "Strike ID is required" },
+        { status: 400 }
+      );
+    }
+
+    // Check if the strike exists and belongs to this member
+    const key = `${STRIKES_PREFIX}${strikeId}`;
+
+    try {
+      const getCommand = new GetObjectCommand({
+        Bucket: bucketName,
+        Key: key,
+      });
+
+      const response = await s3Client.send(getCommand);
+      const bodyContents = await response.Body?.transformToString();
+
+      if (bodyContents) {
+        const strike = JSON.parse(bodyContents) as MemberStrike;
+
+        // Verify the strike belongs to this member
+        if (strike.memberId !== memberId) {
+          return NextResponse.json(
+            { error: "Strike does not belong to this member" },
+            { status: 403 }
+          );
+        }
+      }
+    } catch (error: unknown) {
+      console.log("Error deleting strike:", error);
+      return NextResponse.json({ error: "Strike not found" }, { status: 404 });
+    }
+
+    // Delete the strike
+    const deleteCommand = new DeleteObjectCommand({
+      Bucket: bucketName,
+      Key: key,
+    });
+
+    await s3Client.send(deleteCommand);
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Error deleting strike:", error);
+    return NextResponse.json(
+      { error: "Failed to delete strike" },
       { status: 500 }
     );
   }

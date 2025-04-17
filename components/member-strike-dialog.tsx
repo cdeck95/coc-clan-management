@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -13,9 +13,10 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { saveMemberStrike } from "@/lib/api";
-import { AlertTriangle } from "lucide-react";
+import { saveMemberStrike, updateMemberStrike } from "@/lib/api";
+import { AlertTriangle, FileEdit } from "lucide-react";
 import { toast } from "sonner";
+import { MemberStrike } from "@/types/clash";
 
 interface MemberStrikeDialogProps {
   memberId: string;
@@ -30,6 +31,8 @@ interface MemberStrikeDialogProps {
     | "link";
   buttonSize?: "default" | "sm" | "lg" | "icon";
   buttonLabel?: string;
+  existingStrike?: MemberStrike;
+  isEditing?: boolean;
 }
 
 export function MemberStrikeDialog({
@@ -39,43 +42,55 @@ export function MemberStrikeDialog({
   buttonVariant = "destructive",
   buttonSize = "default",
   buttonLabel,
+  existingStrike,
+  isEditing = false,
 }: MemberStrikeDialogProps) {
   const [reason, setReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [open, setOpen] = useState(false);
+
+  // Load existing strike data if editing
+  useEffect(() => {
+    if (existingStrike && isEditing) {
+      setReason(existingStrike.reason);
+    }
+  }, [existingStrike, isEditing]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      const strikeId = `strike_${Date.now()}`;
-      const strikeData = {
-        id: strikeId,
-        memberId,
-        reason,
-        date: new Date().toISOString(),
-      };
+      if (isEditing && existingStrike) {
+        // Update existing strike
+        const updatedStrike = {
+          ...existingStrike,
+          reason,
+        };
+        await updateMemberStrike(updatedStrike);
+        toast.success(`Strike for ${memberName} has been updated.`);
+      } else {
+        // Create new strike
+        const strikeId = `strike_${Date.now()}`;
+        const strikeData = {
+          id: strikeId,
+          memberId,
+          reason,
+          date: new Date().toISOString(),
+        };
 
-      console.log("Saving strike:", strikeData);
-
-      await saveMemberStrike(strikeData);
-
-      console.log("Strike saved successfully:", strikeId);
+        await saveMemberStrike(strikeData);
+        toast.success(`Strike for ${memberName} has been recorded.`);
+      }
 
       // Clear form and close dialog
       setReason("");
       setOpen(false);
 
-      // Show success toast
-      toast.success(`Strike for ${memberName} has been recorded.`);
-
       // Refresh the member data
       await onStrikeSaved();
     } catch (error) {
       console.error("Error saving strike:", error);
-
-      // Show error toast
       toast.error("Failed to save strike. Please try again.");
     } finally {
       setIsSubmitting(false);
@@ -88,6 +103,8 @@ export function MemberStrikeDialog({
         <Button variant={buttonVariant} size={buttonSize}>
           {buttonLabel ? (
             buttonLabel
+          ) : isEditing ? (
+            <FileEdit className="h-4 w-4" />
           ) : (
             <>
               <AlertTriangle className="mr-2 h-4 w-4" /> Add Strike
@@ -98,9 +115,13 @@ export function MemberStrikeDialog({
       <DialogContent className="sm:max-w-[425px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Add Strike for {memberName}</DialogTitle>
+            <DialogTitle>
+              {isEditing ? "Edit" : "Add"} Strike for {memberName}
+            </DialogTitle>
             <DialogDescription>
-              Create a strike record for rule violations.
+              {isEditing
+                ? "Update an existing strike record for rule violations."
+                : "Create a strike record for rule violations."}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -117,7 +138,11 @@ export function MemberStrikeDialog({
           </div>
           <DialogFooter>
             <Button type="submit" variant="destructive" disabled={isSubmitting}>
-              {isSubmitting ? "Saving..." : "Add Strike"}
+              {isSubmitting
+                ? "Saving..."
+                : isEditing
+                ? "Update Strike"
+                : "Add Strike"}
             </Button>
           </DialogFooter>
         </form>
