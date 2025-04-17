@@ -16,6 +16,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ClanWar } from "@/types/clash";
 import { Star, Info } from "lucide-react";
+import { Tabs } from "@radix-ui/react-tabs";
+import { TabsList } from "./ui/tabs";
 
 interface WarAttacksTableProps {
   warData: ClanWar;
@@ -40,6 +42,29 @@ export function WarAttacksTable({ warData }: WarAttacksTableProps) {
 
   return (
     <div className="overflow-x-auto">
+       <Tabs defaultValue="all" className="w-full">
+                      <TabsList className="grid w-full grid-cols-3">
+                        <TabsTrigger value="all">All</TabsTrigger>
+                        <TabsTrigger value="clan">
+                          <div className="flex items-center">
+                            <div className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 overflow-hidden rounded-full">
+                              <Image
+                                src={selectedWar.clan.badgeUrls.small}
+                                alt=""
+                                width={16}
+                                height={16}
+                              />
+                            </div>
+                            <span className="truncate max-w-[60px] sm:max-w-full">
+                              {selectedWar.clan.name}
+                            </span>
+                          </div>
+                        </TabsTrigger>
+                        <TabsTrigger value="opponent">
+                          </TabsTrigger>
+                          </TabsList>
+                          
+                          ...
       <Table>
         <TableHeader>
           <TableRow>
