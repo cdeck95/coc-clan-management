@@ -180,7 +180,7 @@ export function WarHistory({ clanTag }: WarHistoryProps) {
                         {isWin && <Check className="mr-1 h-3 w-3" />}
                         {isLoss && <X className="mr-1 h-3 w-3" />}
                         {isDraw && <Clock className="mr-1 h-3 w-3" />}
-                        {war.result.toUpperCase()}
+                        {war.result && war.result.toUpperCase()}
                       </Badge>
                     </TableCell>
                     <TableCell>
