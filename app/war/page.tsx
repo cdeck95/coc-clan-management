@@ -102,10 +102,9 @@ export default function WarPage() {
   }
 
   return (
-    <div className="container mx-auto py-6 px-4 space-y-6">
+    <div className="grid grid-cols-1 gap-4 p-4">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-3xl font-bold">Clan War Dashboard</h1>
-        <Button onClick={navigateToCWL}>View Clan War League</Button>
       </div>
 
       {/* Time Remaining Alert */}
@@ -149,38 +148,23 @@ export default function WarPage() {
             onValueChange={setActiveTab}
             className="space-y-4"
           >
-            <div className="overflow-x-auto pb-2">
-              <TabsList>
-                <TabsTrigger
-                  value="overview"
-                  className="flex items-center gap-1"
-                >
-                  <Trophy className="h-4 w-4" />
-                  <span className="sm:inline">Overview</span>
-                </TabsTrigger>
-                <TabsTrigger
-                  value="attacks"
-                  className="flex items-center gap-1"
-                >
-                  <Swords className="h-4 w-4" />
-                  <span className="sm:inline">Attacks</span>
-                </TabsTrigger>
-                <TabsTrigger
-                  value="analytics"
-                  className="flex items-center gap-1"
-                >
-                  <AlertCircle className="h-4 w-4" />
-                  <span className="sm:inline">Analytics</span>
-                </TabsTrigger>
-                <TabsTrigger
-                  value="history"
-                  className="flex items-center gap-1"
-                >
-                  <Clock className="h-4 w-4" />
-                  <span className="sm:inline">History</span>
-                </TabsTrigger>
-              </TabsList>
-            </div>
+            <TabsList>
+              <TabsTrigger value="overview" className="flex items-center gap-1">
+                <Trophy className="h-4 w-4" />
+                <span className="sm:inline">Overview</span>
+              </TabsTrigger>
+              <TabsTrigger value="attacks" className="flex items-center gap-1">
+                <Swords className="h-4 w-4" />
+                <span className="sm:inline">Attacks</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="analytics"
+                className="flex items-center gap-1"
+              >
+                <AlertCircle className="h-4 w-4" />
+                <span className="sm:inline">Analytics</span>
+              </TabsTrigger>
+            </TabsList>
 
             <TabsContent value="overview" className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -258,7 +242,7 @@ export default function WarPage() {
                             className="inline-block h-8 w-8"
                           />
                         </div>
-                        <div className="flex items-center">
+                        <div className="flex items-center justify-center">
                           <div className="text-xl font-bold mr-1">
                             {currentWar.clan.stars}
                           </div>
@@ -286,7 +270,7 @@ export default function WarPage() {
                             className="inline-block h-8 w-8"
                           />
                         </div>
-                        <div className="flex items-center">
+                        <div className="flex items-center justify-center">
                           <div className="text-xl font-bold mr-1">
                             {currentWar.opponent.stars}
                           </div>
@@ -445,11 +429,6 @@ export default function WarPage() {
             <TabsContent value="analytics">
               {/* War Analytics */}
               <WarAnalytics warData={currentWar} />
-            </TabsContent>
-
-            <TabsContent value="history">
-              {/* War History */}
-              <WarHistory clanTag={clanTag} />
             </TabsContent>
           </Tabs>
         </div>

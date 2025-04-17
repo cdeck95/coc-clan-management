@@ -38,6 +38,66 @@ interface WarHistoryProps {
   clanTag: string;
 }
 
+// Helper function to parse different date formats, including Clash of Clans API format
+const parseCoCAVIDate = (dateString?: string): Date | null => {
+  if (!dateString) return null;
+
+  try {
+    // Try standard ISO format first
+    let parsedDate = new Date(dateString);
+    if (!isNaN(parsedDate.getTime())) {
+      return parsedDate;
+    }
+
+    // Regular expressions for different formats
+    const isoWithoutHyphens =
+      /^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})(?:\.(\d{3}))?Z?$/;
+    const match = dateString.match(isoWithoutHyphens);
+
+    if (match) {
+      // Extract components
+      const [, year, month, day, hour, minute, second] = match;
+      // Create standard ISO string with hyphens and colons
+      const isoFormat = `${year}-${month}-${day}T${hour}:${minute}:${second}Z`;
+      parsedDate = new Date(isoFormat);
+
+      if (!isNaN(parsedDate.getTime())) {
+        return parsedDate;
+      }
+    }
+
+    // If we got here, try to be even more flexible
+    // This handles formats like "20220130T120000.000Z" (no hyphens/colons, with milliseconds)
+    if (dateString.length >= 15) {
+      const year = dateString.substring(0, 4);
+      const month = dateString.substring(4, 6);
+      const day = dateString.substring(6, 8);
+
+      // Look for the T separator
+      const tIndex = dateString.indexOf("T");
+      if (tIndex > 0 && tIndex + 6 <= dateString.length) {
+        const hour = dateString.substring(tIndex + 1, tIndex + 3);
+        const minute = dateString.substring(tIndex + 3, tIndex + 5);
+        const second = dateString.substring(tIndex + 5, tIndex + 7);
+
+        // Create standard ISO string
+        const isoFormat = `${year}-${month}-${day}T${hour}:${minute}:${second}Z`;
+        parsedDate = new Date(isoFormat);
+
+        if (!isNaN(parsedDate.getTime())) {
+          return parsedDate;
+        }
+      }
+    }
+
+    console.error("Could not parse date format:", dateString);
+    return null;
+  } catch (error) {
+    console.error("Error parsing date:", dateString, error);
+    return null;
+  }
+};
+
 export function WarHistory({ clanTag }: WarHistoryProps) {
   const [warLog, setWarLog] = useState<WarLogEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,8 +114,8 @@ export function WarHistory({ clanTag }: WarHistoryProps) {
           : clanTag;
         const warLogData = await getWarLog(cleanTag);
 
-        if (warLogData && warLogData.items) {
-          setWarLog(warLogData.items);
+        if (warLogData) {
+          setWarLog(warLogData);
         } else {
           setWarLog([]);
         }
@@ -160,7 +220,8 @@ export function WarHistory({ clanTag }: WarHistoryProps) {
             </TableHeader>
             <TableBody>
               {paginatedWarLog.map((war, index) => {
-                const warDate = new Date(war.endTime);
+                // Use the parsing utility to handle CoC API date format
+                const warDate = parseCoCAVIDate(war.endTime) || new Date();
                 const isWin = war.result === "win";
                 const isLoss = war.result === "lose";
                 const isDraw = war.result === "tie";
