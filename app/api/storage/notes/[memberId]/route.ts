@@ -86,10 +86,10 @@ export async function GET(
 // PUT to update a note for a specific member
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { memberId: string } }
+  { params }: { params: tParams }
 ) {
   try {
-    const { memberId } = params;
+    const memberId = (await params).memberId;
     const note = (await request.json()) as MemberNote;
 
     // Validate the note
@@ -141,10 +141,10 @@ export async function PUT(
 // DELETE a note for a specific member
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { memberId: string } }
+  { params }: { params: tParams }
 ) {
   try {
-    const { memberId } = params;
+    const memberId = (await params).memberId;
     const { searchParams } = new URL(request.url);
     const noteId = searchParams.get("id");
 

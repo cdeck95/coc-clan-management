@@ -22,10 +22,13 @@ const s3Client = new S3Client({
 
 const STRIKES_PREFIX = "strikes/";
 
+// Fixed type definition - params are not a Promise in Next.js App Router
+type tParams = Promise<{ memberId: string }>;
+
 // GET strikes for a specific member
 export async function GET(
   request: NextRequest,
-  { params }: { params: { memberId: string } }
+  { params }: { params: tParams }
 ) {
   try {
     // Await params to fix the error
@@ -85,10 +88,11 @@ export async function GET(
 // PUT to update a strike for a specific member
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { memberId: string } }
+  { params }: { params: tParams }
 ) {
   try {
-    const { memberId } = params;
+    // Await params to fix the error
+    const memberId = (await params).memberId;
     const strike = (await request.json()) as MemberStrike;
 
     // Validate the strike
@@ -143,10 +147,11 @@ export async function PUT(
 // DELETE a strike for a specific member
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { memberId: string } }
+  { params }: { params: tParams }
 ) {
   try {
-    const { memberId } = params;
+    // Await params to fix the error
+    const memberId = (await params).memberId;
     const { searchParams } = new URL(request.url);
     const strikeId = searchParams.get("id");
 
