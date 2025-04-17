@@ -4,7 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { SidebarNav } from "@/components/sidemenu";
 import { usePathname } from "next/navigation";
-import { Home, Users, Shield, Menu, Swords, Ban, Trophy } from "lucide-react";
+import {
+  Home,
+  Users,
+  Shield,
+  Menu,
+  Swords,
+  Ban,
+  Trophy,
+  Notebook,
+} from "lucide-react";
 import { ModeToggle } from "./ui/modetoggle";
 import { useState } from "react";
 
@@ -36,8 +45,16 @@ export default function MenuHeader() {
       title: "War",
       href: "/war",
       icon: <Swords className="h-4 w-4" />,
+      variant: path === "/war" ? "default" : "ghost",
+    },
+    {
+      title: "War Log",
+      href: "/war-history",
+      icon: <Notebook className="h-4 w-4" />,
       variant:
-        path === "/war" || path.startsWith("/war/") ? "default" : "ghost",
+        path.startsWith("/war-history") && !path.includes("/warleague")
+          ? "default"
+          : "ghost",
     },
     {
       title: "Clan War League",
