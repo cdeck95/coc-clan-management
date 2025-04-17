@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ClanMember, MemberNote, MemberStrike } from "@/types/clash";
+import {
+  ClanMember,
+  MemberNote,
+  MemberStrike,
+  BannedMember,
+} from "@/types/clash";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "./ui/button";
 import {
@@ -14,10 +19,14 @@ import {
   AlertCircle,
   FileText,
   Loader2,
+  Ban,
+  ClipboardCopy,
+  Trash2,
 } from "lucide-react";
 import { cn, getDonationRatio, getRoleColor } from "@/lib/utils";
 import { MemberNoteDialog } from "./member-note-dialog";
 import { MemberStrikeDialog } from "./member-strike-dialog";
+import { AddToBannedDialog } from "./add-to-banned-dialog";
 import {
   Collapsible,
   CollapsibleContent,
@@ -27,15 +36,18 @@ import {
   fetchMembersData,
   getMemberNotesByMemberId,
   getMemberStrikesByMemberId,
+  deleteMemberNote,
+  deleteMemberStrike,
+  getBannedMembers,
 } from "@/lib/api";
 import { THLevelIcon } from "./th-level-icon";
+import { toast } from "sonner";
 
 interface MembersListProps {
   members: ClanMember[];
 }
 
 export function MembersList({ members }: MembersListProps) {
-  console.log("MembersList", members);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [memberNotes, setMemberNotes] = useState<Record<string, MemberNote[]>>(
     {}
@@ -43,6 +55,17 @@ export function MembersList({ members }: MembersListProps) {
   const [memberStrikes, setMemberStrikes] = useState<
     Record<string, MemberStrike[]>
   >({});
+  const [bannedStatus, setBannedStatus] = useState<
+    Record<
+      string,
+      {
+        isBanned: boolean;
+        bannedMember: BannedMember | null;
+      }
+    >
+  >({});
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [allBannedMembers, setAllBannedMembers] = useState<BannedMember[]>([]);
   const [loadingData, setLoadingData] = useState<Record<string, boolean>>({});
   const [initialDataLoaded, setInitialDataLoaded] = useState(false);
 
@@ -90,6 +113,34 @@ export function MembersList({ members }: MembersListProps) {
         return newStrikes;
       });
 
+      // Get all banned members at once
+      const bannedMembers = await getBannedMembers();
+      setAllBannedMembers(bannedMembers);
+
+      // Create banned status map for all members
+      const newBannedStatus: Record<
+        string,
+        {
+          isBanned: boolean;
+          bannedMember: BannedMember | null;
+        }
+      > = {};
+
+      // Check each member against the banned list
+      memberIds.forEach((memberId) => {
+        const bannedMember = bannedMembers.find(
+          (banned) => banned.tag === memberId
+        );
+        newBannedStatus[memberId] = {
+          isBanned: !!bannedMember,
+          bannedMember: bannedMember || null,
+        };
+      });
+
+      console.log("Banned members:", bannedMembers);
+      console.log("Banned status:", newBannedStatus);
+
+      setBannedStatus(newBannedStatus);
       setInitialDataLoaded(true);
     } catch (error) {
       console.error(`Error loading batch data:`, error);
@@ -108,19 +159,65 @@ export function MembersList({ members }: MembersListProps) {
     setLoadingData((prev) => ({ ...prev, [memberId]: true }));
 
     try {
-      // For individual refreshes, we can still use the single member endpoints
+      // For individual refreshes, fetch all necessary data
       const [notes, strikes] = await Promise.all([
         getMemberNotesByMemberId(memberId),
         getMemberStrikesByMemberId(memberId),
       ]);
 
+      // Fetch all banned members if needed (could be optimized to only fetch if you've added/removed bans)
+      const bannedMembers = await getBannedMembers();
+      setAllBannedMembers(bannedMembers);
+
+      // Check if this member is banned
+      const bannedMember = bannedMembers.find(
+        (banned) => banned.tag === memberId
+      );
+
       setMemberNotes((prev) => ({ ...prev, [memberId]: notes }));
       setMemberStrikes((prev) => ({ ...prev, [memberId]: strikes }));
+      setBannedStatus((prev) => ({
+        ...prev,
+        [memberId]: {
+          isBanned: !!bannedMember,
+          bannedMember: bannedMember || null,
+        },
+      }));
     } catch (error) {
       console.error(`Error refreshing data for ${memberId}:`, error);
     } finally {
       setLoadingData((prev) => ({ ...prev, [memberId]: false }));
     }
+  };
+
+  // Handle deleting a note
+  const handleDeleteNote = async (noteId: string, memberId: string) => {
+    try {
+      await deleteMemberNote(noteId);
+      toast.success("Note deleted successfully");
+      await handleDataRefresh(memberId);
+    } catch (error) {
+      console.error("Error deleting note:", error);
+      toast.error("Failed to delete note");
+    }
+  };
+
+  // Handle deleting a strike
+  const handleDeleteStrike = async (strikeId: string, memberId: string) => {
+    try {
+      await deleteMemberStrike(strikeId);
+      toast.success("Strike deleted successfully");
+      await handleDataRefresh(memberId);
+    } catch (error) {
+      console.error("Error deleting strike:", error);
+      toast.error("Failed to delete strike");
+    }
+  };
+
+  // Copy to clipboard function
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success("Copied to clipboard!");
   };
 
   // Determine badge colors based on donation ratio
@@ -155,8 +252,6 @@ export function MembersList({ members }: MembersListProps) {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  console.log("IsMobile", isMobile);
-
   // If initial data is still loading, display a loading state for the entire list
   if (!initialDataLoaded && members.length > 0) {
     return (
@@ -180,6 +275,8 @@ export function MembersList({ members }: MembersListProps) {
 
           const hasNotes = memberNotes[member.tag]?.length > 0;
           const hasStrikes = memberStrikes[member.tag]?.length > 0;
+          const isBanned = bannedStatus[member.tag]?.isBanned || false;
+          const bannedInfo = bannedStatus[member.tag]?.bannedMember || null;
 
           const rankChange = member.previousClanRank - member.clanRank;
 
@@ -190,7 +287,9 @@ export function MembersList({ members }: MembersListProps) {
               onOpenChange={() => handleToggleExpand(member)}
               className={cn(
                 "border rounded-md overflow-hidden transition-all relative",
-                idx === 0
+                isBanned
+                  ? "border-red-500 bg-red-50/50 dark:bg-red-900/10"
+                  : idx === 0
                   ? "border-amber-500/50 bg-amber-50/50 dark:bg-amber-900/10"
                   : idx === 1
                   ? "border-zinc-400/50 bg-zinc-50/50 dark:bg-zinc-800/10"
@@ -251,12 +350,29 @@ export function MembersList({ members }: MembersListProps) {
                     {hasStrikes && (
                       <AlertCircle className="h-3 w-3 text-red-500" />
                     )}
+                    {isBanned && <Ban className="h-3 w-3 text-red-500" />}
                   </div>
 
                   <div className="flex items-center gap-2">
                     <Badge className={`${getRoleColor(member.role)} text-xs`}>
                       {getRoleName(member.role)}
                     </Badge>
+                  </div>
+
+                  {/* Player tag with copy button */}
+                  <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground font-mono">
+                    {member.tag}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-5 w-5 p-0"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        copyToClipboard(member.tag);
+                      }}
+                    >
+                      <ClipboardCopy className="h-3 w-3" />
+                    </Button>
                   </div>
                 </div>
 
@@ -327,6 +443,29 @@ export function MembersList({ members }: MembersListProps) {
                           </div>
                         </div>
 
+                        {/* Ban status alert */}
+                        {isBanned && bannedInfo && (
+                          <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
+                            <div className="flex gap-2 items-start">
+                              <AlertCircle className="h-5 w-5 text-red-500 mt-0.5" />
+                              <div>
+                                <p className="text-sm font-medium text-red-800 dark:text-red-200">
+                                  This member is on the banned list
+                                </p>
+                                <p className="text-xs mt-1">
+                                  Reason: {bannedInfo.reason}
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  Banned on:{" "}
+                                  {new Date(
+                                    bannedInfo.date
+                                  ).toLocaleDateString()}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
                         {/* Notes section */}
                         <div className="mt-4">
                           <div className="flex justify-between items-center mb-2">
@@ -347,7 +486,33 @@ export function MembersList({ members }: MembersListProps) {
                                   key={note.id}
                                   className="text-xs p-2 rounded bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800"
                                 >
-                                  <p>{note.note}</p>
+                                  <div className="flex justify-between items-start">
+                                    <p>{note.note}</p>
+                                    <div className="flex space-x-1 ml-2">
+                                      <MemberNoteDialog
+                                        memberId={member.tag}
+                                        memberName={member.name}
+                                        onNoteSaved={() =>
+                                          handleDataRefresh(member.tag)
+                                        }
+                                        buttonVariant="ghost"
+                                        buttonSize="icon"
+                                        existingNote={note}
+                                        isEditing={true}
+                                      />
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-5 w-5 p-0"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleDeleteNote(note.id, member.tag);
+                                        }}
+                                      >
+                                        <Trash2 className="h-3 w-3" />
+                                      </Button>
+                                    </div>
+                                  </div>
                                   <p className="text-[10px] mt-1 text-muted-foreground">
                                     {new Date(note.date).toLocaleString()}
                                   </p>
@@ -382,7 +547,36 @@ export function MembersList({ members }: MembersListProps) {
                                 key={strike.id}
                                 className="text-xs p-2 rounded bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"
                               >
-                                <p className="font-medium">{strike.reason}</p>
+                                <div className="flex justify-between items-start">
+                                  <p className="font-medium">{strike.reason}</p>
+                                  <div className="flex space-x-1 ml-2">
+                                    <MemberStrikeDialog
+                                      memberId={member.tag}
+                                      memberName={member.name}
+                                      onStrikeSaved={() =>
+                                        handleDataRefresh(member.tag)
+                                      }
+                                      buttonVariant="ghost"
+                                      buttonSize="icon"
+                                      existingStrike={strike}
+                                      isEditing={true}
+                                    />
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-5 w-5 p-0"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDeleteStrike(
+                                          strike.id,
+                                          member.tag
+                                        );
+                                      }}
+                                    >
+                                      <Trash2 className="h-3 w-3" />
+                                    </Button>
+                                  </div>
+                                </div>
                                 <p className="text-[10px] mt-1 text-muted-foreground">
                                   {new Date(strike.date).toLocaleString()}
                                 </p>
@@ -411,6 +605,23 @@ export function MembersList({ members }: MembersListProps) {
                             <div className="font-medium">{formattedRatio}</div>
                           </div>
                         </div>
+
+                        {/* Add to Banned List button */}
+                        <div className="mt-4">
+                          <AddToBannedDialog
+                            memberId={member.tag}
+                            memberName={member.name}
+                            onMemberBanned={() => handleDataRefresh(member.tag)}
+                            buttonVariant="outline"
+                            buttonSize="sm"
+                            isBanned={
+                              bannedStatus[member.tag]?.isBanned || false
+                            }
+                            bannedMember={
+                              bannedStatus[member.tag]?.bannedMember || null
+                            }
+                          />
+                        </div>
                       </div>
                     </div>
                   )}
@@ -435,6 +646,8 @@ export function MembersList({ members }: MembersListProps) {
 
         const hasNotes = memberNotes[member.tag]?.length > 0;
         const hasStrikes = memberStrikes[member.tag]?.length > 0;
+        const isBanned = bannedStatus[member.tag]?.isBanned || false;
+        const bannedInfo = bannedStatus[member.tag]?.bannedMember || null;
 
         const rankChange = member.previousClanRank - member.clanRank;
 
@@ -445,7 +658,9 @@ export function MembersList({ members }: MembersListProps) {
             onOpenChange={() => handleToggleExpand(member)}
             className={cn(
               "border rounded-md overflow-hidden transition-all",
-              idx === 0
+              isBanned
+                ? "border-red-500 bg-red-50/50 dark:bg-red-900/10"
+                : idx === 0
                 ? "border-amber-500/50 bg-amber-50/50 dark:bg-amber-900/10"
                 : idx === 1
                 ? "border-zinc-400/50 bg-zinc-50/50 dark:bg-zinc-800/10"
@@ -506,11 +721,28 @@ export function MembersList({ members }: MembersListProps) {
                     {getRoleName(member.role)}
                   </Badge>
 
+                  {/* Player tag with copy button */}
+                  <span className="text-xs text-muted-foreground font-mono flex items-center">
+                    {member.tag}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-5 w-5 p-0 ml-1"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        copyToClipboard(member.tag);
+                      }}
+                    >
+                      <ClipboardCopy className="h-3 w-3" />
+                    </Button>
+                  </span>
+
                   {/* Status indicators */}
                   {hasNotes && <FileText className="h-3 w-3 text-blue-500" />}
                   {hasStrikes && (
                     <AlertCircle className="h-3 w-3 text-red-500" />
                   )}
+                  {isBanned && <Ban className="h-3 w-3 text-red-500" />}
                 </div>
               </div>
 
@@ -583,6 +815,27 @@ export function MembersList({ members }: MembersListProps) {
                         </div>
                       </div>
 
+                      {/* Ban status alert */}
+                      {isBanned && bannedInfo && (
+                        <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
+                          <div className="flex gap-2 items-start">
+                            <AlertCircle className="h-5 w-5 text-red-500 mt-0.5" />
+                            <div>
+                              <p className="text-sm font-medium text-red-800 dark:text-red-200">
+                                This member is on the banned list
+                              </p>
+                              <p className="text-xs mt-1">
+                                Reason: {bannedInfo.reason}
+                              </p>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Banned on:{" "}
+                                {new Date(bannedInfo.date).toLocaleDateString()}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
                       {/* Notes section */}
                       <div className="mt-4">
                         <div className="flex justify-between items-center mb-2">
@@ -604,7 +857,33 @@ export function MembersList({ members }: MembersListProps) {
                                 key={note.id}
                                 className="text-xs p-2 rounded bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800"
                               >
-                                <p>{note.note}</p>
+                                <div className="flex justify-between items-start">
+                                  <p>{note.note}</p>
+                                  <div className="flex space-x-1 ml-2">
+                                    <MemberNoteDialog
+                                      memberId={member.tag}
+                                      memberName={member.name}
+                                      onNoteSaved={() =>
+                                        handleDataRefresh(member.tag)
+                                      }
+                                      buttonVariant="ghost"
+                                      buttonSize="icon"
+                                      existingNote={note}
+                                      isEditing={true}
+                                    />
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-5 w-5 p-0"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDeleteNote(note.id, member.tag);
+                                      }}
+                                    >
+                                      <Trash2 className="h-3 w-3" />
+                                    </Button>
+                                  </div>
+                                </div>
                                 <p className="text-[10px] mt-1 text-muted-foreground">
                                   {new Date(note.date).toLocaleString()}
                                 </p>
@@ -640,7 +919,33 @@ export function MembersList({ members }: MembersListProps) {
                               key={strike.id}
                               className="text-xs p-2 rounded bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"
                             >
-                              <p className="font-medium">{strike.reason}</p>
+                              <div className="flex justify-between items-start">
+                                <p className="font-medium">{strike.reason}</p>
+                                <div className="flex space-x-1 ml-2">
+                                  <MemberStrikeDialog
+                                    memberId={member.tag}
+                                    memberName={member.name}
+                                    onStrikeSaved={() =>
+                                      handleDataRefresh(member.tag)
+                                    }
+                                    buttonVariant="ghost"
+                                    buttonSize="icon"
+                                    existingStrike={strike}
+                                    isEditing={true}
+                                  />
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-5 w-5 p-0"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteStrike(strike.id, member.tag);
+                                    }}
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              </div>
                               <p className="text-[10px] mt-1 text-muted-foreground">
                                 {new Date(strike.date).toLocaleString()}
                               </p>
@@ -667,6 +972,20 @@ export function MembersList({ members }: MembersListProps) {
                           <div>Ratio:</div>
                           <div className="font-medium">{formattedRatio}</div>
                         </div>
+                      </div>
+
+                      {/* Add to Banned List button */}
+                      <div className="mt-4">
+                        <AddToBannedDialog
+                          memberId={member.tag}
+                          memberName={member.name}
+                          onMemberBanned={() => handleDataRefresh(member.tag)}
+                          buttonVariant="outline"
+                          isBanned={bannedStatus[member.tag]?.isBanned || false}
+                          bannedMember={
+                            bannedStatus[member.tag]?.bannedMember || null
+                          }
+                        />
                       </div>
                     </div>
                   </div>

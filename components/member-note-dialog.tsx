@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -13,9 +13,10 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { saveMemberNote } from "@/lib/api";
-import { FileEdit } from "lucide-react";
+import { saveMemberNote, updateMemberNote } from "@/lib/api";
+import { FileEdit, Plus } from "lucide-react";
 import { toast } from "sonner";
+import { MemberNote } from "@/types/clash";
 
 interface MemberNoteDialogProps {
   memberId: string;
@@ -30,6 +31,8 @@ interface MemberNoteDialogProps {
     | "link";
   buttonSize?: "default" | "sm" | "lg" | "icon";
   buttonLabel?: string;
+  existingNote?: MemberNote;
+  isEditing?: boolean;
 }
 
 export function MemberNoteDialog({
@@ -39,43 +42,55 @@ export function MemberNoteDialog({
   buttonVariant = "default",
   buttonSize = "default",
   buttonLabel,
+  existingNote,
+  isEditing = false,
 }: MemberNoteDialogProps) {
   const [note, setNote] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [open, setOpen] = useState(false);
+
+  // Load existing note data if editing
+  useEffect(() => {
+    if (existingNote && isEditing) {
+      setNote(existingNote.note);
+    }
+  }, [existingNote, isEditing]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      const noteId = `note_${Date.now()}`;
-      const noteData = {
-        id: noteId,
-        memberId,
-        note,
-        date: new Date().toISOString(),
-      };
+      if (isEditing && existingNote) {
+        // Update existing note
+        const updatedNote = {
+          ...existingNote,
+          note,
+        };
+        await updateMemberNote(updatedNote);
+        toast.success(`Note for ${memberName} has been updated.`);
+      } else {
+        // Create new note
+        const noteId = `note_${Date.now()}`;
+        const noteData = {
+          id: noteId,
+          memberId,
+          note,
+          date: new Date().toISOString(),
+        };
 
-      console.log("Saving note:", noteData);
-
-      await saveMemberNote(noteData);
-
-      console.log("Note saved successfully.");
+        await saveMemberNote(noteData);
+        toast.success(`Note for ${memberName} has been saved.`);
+      }
 
       // Clear form and close dialog
       setNote("");
       setOpen(false);
 
-      // Show success toast
-      toast.success(`Note for ${memberName} has been saved.`);
-
       // Refresh the member data
       await onNoteSaved();
     } catch (error) {
       console.error("Error saving note:", error);
-
-      // Show error toast
       toast.error("Failed to save note. Please try again.");
     } finally {
       setIsSubmitting(false);
@@ -88,9 +103,11 @@ export function MemberNoteDialog({
         <Button variant={buttonVariant} size={buttonSize}>
           {buttonLabel ? (
             buttonLabel
+          ) : isEditing ? (
+            <FileEdit className="h-4 w-4" />
           ) : (
             <>
-              <FileEdit className="mr-2 h-4 w-4" /> Add Note
+              <Plus className="mr-2 h-4 w-4" /> Add Note
             </>
           )}
         </Button>
@@ -98,9 +115,13 @@ export function MemberNoteDialog({
       <DialogContent className="sm:max-w-[425px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Add Note for {memberName}</DialogTitle>
+            <DialogTitle>
+              {isEditing ? "Edit" : "Add"} Note for {memberName}
+            </DialogTitle>
             <DialogDescription>
-              Create a note that is visible to clan leadership.
+              {isEditing
+                ? "Update an existing note that is visible to clan leadership."
+                : "Create a note that is visible to clan leadership."}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -117,7 +138,11 @@ export function MemberNoteDialog({
           </div>
           <DialogFooter>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Saving..." : "Save Note"}
+              {isSubmitting
+                ? "Saving..."
+                : isEditing
+                ? "Update Note"
+                : "Save Note"}
             </Button>
           </DialogFooter>
         </form>
