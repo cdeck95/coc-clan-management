@@ -244,6 +244,8 @@ export interface WarLogEntry {
   teamSize: number;
   clan: WarClanSummary;
   opponent: WarClanSummary;
+  attacksPerMember: number;
+  battleModifier: string;
 }
 
 export interface WarClanSummary {
