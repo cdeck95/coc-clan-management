@@ -16,8 +16,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ClanWar } from "@/types/clash";
 import { Star, Info } from "lucide-react";
-import { Tabs } from "@radix-ui/react-tabs";
-import { TabsList } from "./ui/tabs";
+import { Tabs, TabsContent } from "@radix-ui/react-tabs";
+import { TabsList, TabsTrigger } from "./ui/tabs";
 
 interface WarAttacksTableProps {
   warData: ClanWar;
@@ -42,145 +42,78 @@ export function WarAttacksTable({ warData }: WarAttacksTableProps) {
 
   return (
     <div className="overflow-x-auto">
-       <Tabs defaultValue="all" className="w-full">
-                      <TabsList className="grid w-full grid-cols-3">
-                        <TabsTrigger value="all">All</TabsTrigger>
-                        <TabsTrigger value="clan">
-                          <div className="flex items-center">
-                            <div className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 overflow-hidden rounded-full">
-                              <Image
-                                src={selectedWar.clan.badgeUrls.small}
-                                alt=""
-                                width={16}
-                                height={16}
-                              />
-                            </div>
-                            <span className="truncate max-w-[60px] sm:max-w-full">
-                              {selectedWar.clan.name}
-                            </span>
-                          </div>
-                        </TabsTrigger>
-                        <TabsTrigger value="opponent">
-                          </TabsTrigger>
-                          </TabsList>
-                          
-                          ...
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-12 text-center">#</TableHead>
-            <TableHead>Player</TableHead>
-            <TableHead className="text-center">TH</TableHead>
-            <TableHead>Attacks</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {allMembers.map((member) => {
-            const hasAttacks = member.attacks && member.attacks.length > 0;
+      <Tabs defaultValue="clan" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="clan">{clan.name}</TabsTrigger>
+          <TabsTrigger value="opponent">{opponent.name}</TabsTrigger>
+          <TabsTrigger value="all">All</TabsTrigger>
+        </TabsList>
 
-            return (
-              <TableRow
-                key={member.tag}
-                className={
-                  member.isOurClan ? "bg-primary-50 dark:bg-primary-950/10" : ""
-                }
-              >
-                <TableCell className="text-center font-medium">
-                  {member.mapPosition}
-                </TableCell>
-                <TableCell>
-                  <div className="flex flex-col">
-                    <div className="font-medium truncate max-w-[120px] sm:max-w-[180px] md:max-w-full">
-                      {member.name}
-                    </div>
-                    <span className="text-xs text-muted-foreground truncate max-w-[120px] sm:max-w-[180px] md:max-w-full">
-                      {member.tag}
-                    </span>
-                  </div>
-                </TableCell>
-                <TableCell className="text-center">
-                  {member.townhallLevel}
-                </TableCell>
-                <TableCell>
-                  {hasAttacks ? (
-                    <div className="space-y-2 flex flex-col">
-                      {member.attacks?.map((attack) => {
-                        const defender = findDefenderByTag(attack.defenderTag);
+        <TabsContent value="all">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-12 text-center">#</TableHead>
+                <TableHead>Player</TableHead>
+                <TableHead className="text-center">TH</TableHead>
+                <TableHead>Attacks</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {allMembers.map((member) => {
+                const hasAttacks = member.attacks && member.attacks.length > 0;
 
-                        return (
-                          <Popover
-                            key={attack.attackerTag + "-" + attack.defenderTag}
-                          >
-                            <PopoverTrigger asChild>
-                              <Button
-                                variant="outline"
-                                className="w-full justify-between h-auto py-2 px-3"
+                return (
+                  <TableRow
+                    key={member.tag}
+                    className={
+                      member.isOurClan
+                        ? "bg-primary-50 dark:bg-primary-950/10"
+                        : ""
+                    }
+                  >
+                    <TableCell className="text-center font-medium">
+                      {member.mapPosition}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col">
+                        <div className="font-medium truncate max-w-[120px] sm:max-w-[180px] md:max-w-full">
+                          {member.name}
+                        </div>
+                        <span className="text-xs text-muted-foreground truncate max-w-[120px] sm:max-w-[180px] md:max-w-full">
+                          {member.tag}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {member.townhallLevel}
+                    </TableCell>
+                    <TableCell>
+                      {hasAttacks ? (
+                        <div className="space-y-2 flex flex-col">
+                          {member.attacks?.map((attack) => {
+                            const defender = findDefenderByTag(
+                              attack.defenderTag
+                            );
+
+                            return (
+                              <Popover
+                                key={
+                                  attack.attackerTag + "-" + attack.defenderTag
+                                }
                               >
-                                <div className="flex items-center gap-1">
-                                  {Array(attack.stars)
-                                    .fill(0)
-                                    .map((_, i) => (
-                                      <Star
-                                        key={i}
-                                        className="h-4 w-4 fill-yellow-500 text-yellow-500"
-                                      />
-                                    ))}
-                                  {Array(3 - attack.stars)
-                                    .fill(0)
-                                    .map((_, i) => (
-                                      <Star
-                                        key={i}
-                                        className="h-4 w-4 text-muted-foreground/30"
-                                      />
-                                    ))}
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <Badge variant="outline" className="text-xs">
-                                    {attack.destructionPercentage}%
-                                  </Badge>
-                                  <span className="text-sm hidden sm:inline">
-                                    → #{defender?.mapPosition || "?"}
-                                  </span>
-                                  <Info className="h-4 w-4 sm:hidden" />
-                                </div>
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-72 p-4">
-                              <div className="space-y-2">
-                                <h4 className="font-medium">Attack Details</h4>
-                                <div className="grid grid-cols-2 gap-2 text-sm">
-                                  <div className="space-y-1">
-                                    <p className="text-muted-foreground">
-                                      Attacker
-                                    </p>
-                                    <p className="font-medium">{member.name}</p>
-                                    <p className="text-xs text-muted-foreground">
-                                      #{member.mapPosition} • TH
-                                      {member.townhallLevel}
-                                    </p>
-                                  </div>
-                                  <div className="space-y-1">
-                                    <p className="text-muted-foreground">
-                                      Defender
-                                    </p>
-                                    <p className="font-medium">
-                                      {defender?.name || "Unknown"}
-                                    </p>
-                                    <p className="text-xs text-muted-foreground">
-                                      #{defender?.mapPosition || "?"} • TH
-                                      {defender?.townhallLevel || "?"}
-                                    </p>
-                                  </div>
-                                </div>
-                                <div className="pt-2 border-t">
-                                  <div className="flex items-center justify-between">
+                                <PopoverTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    className="w-full justify-between h-auto py-2 px-3"
+                                  >
                                     <div className="flex items-center gap-1">
                                       {Array(attack.stars)
                                         .fill(0)
                                         .map((_, i) => (
                                           <Star
                                             key={i}
-                                            className="h-5 w-5 fill-yellow-500 text-yellow-500"
+                                            className="h-4 w-4 fill-yellow-500 text-yellow-500"
                                           />
                                         ))}
                                       {Array(3 - attack.stars)
@@ -188,33 +121,102 @@ export function WarAttacksTable({ warData }: WarAttacksTableProps) {
                                         .map((_, i) => (
                                           <Star
                                             key={i}
-                                            className="h-5 w-5 text-muted-foreground/30"
+                                            className="h-4 w-4 text-muted-foreground/30"
                                           />
                                         ))}
                                     </div>
-                                    <Badge className="text-sm">
-                                      {attack.destructionPercentage}%
-                                      destruction
-                                    </Badge>
+                                    <div className="flex items-center gap-2">
+                                      <Badge
+                                        variant="outline"
+                                        className="text-xs"
+                                      >
+                                        {attack.destructionPercentage}%
+                                      </Badge>
+                                      <span className="text-sm hidden sm:inline">
+                                        → #{defender?.mapPosition || "?"}
+                                      </span>
+                                      <Info className="h-4 w-4 sm:hidden" />
+                                    </div>
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-72 p-4">
+                                  <div className="space-y-2">
+                                    <h4 className="font-medium">
+                                      Attack Details
+                                    </h4>
+                                    <div className="grid grid-cols-2 gap-2 text-sm">
+                                      <div className="space-y-1">
+                                        <p className="text-muted-foreground">
+                                          Attacker
+                                        </p>
+                                        <p className="font-medium">
+                                          {member.name}
+                                        </p>
+                                        <p className="text-xs text-muted-foreground">
+                                          #{member.mapPosition} • TH
+                                          {member.townhallLevel}
+                                        </p>
+                                      </div>
+                                      <div className="space-y-1">
+                                        <p className="text-muted-foreground">
+                                          Defender
+                                        </p>
+                                        <p className="font-medium">
+                                          {defender?.name || "Unknown"}
+                                        </p>
+                                        <p className="text-xs text-muted-foreground">
+                                          #{defender?.mapPosition || "?"} • TH
+                                          {defender?.townhallLevel || "?"}
+                                        </p>
+                                      </div>
+                                    </div>
+                                    <div className="pt-2 border-t">
+                                      <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-1">
+                                          {Array(attack.stars)
+                                            .fill(0)
+                                            .map((_, i) => (
+                                              <Star
+                                                key={i}
+                                                className="h-5 w-5 fill-yellow-500 text-yellow-500"
+                                              />
+                                            ))}
+                                          {Array(3 - attack.stars)
+                                            .fill(0)
+                                            .map((_, i) => (
+                                              <Star
+                                                key={i}
+                                                className="h-5 w-5 text-muted-foreground/30"
+                                              />
+                                            ))}
+                                        </div>
+                                        <Badge className="text-sm">
+                                          {attack.destructionPercentage}%
+                                          destruction
+                                        </Badge>
+                                      </div>
+                                    </div>
                                   </div>
-                                </div>
-                              </div>
-                            </PopoverContent>
-                          </Popover>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <span className="text-muted-foreground text-sm">
-                      No attacks yet
-                    </span>
-                  )}
-                </TableCell>
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
+                                </PopoverContent>
+                              </Popover>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">
+                          No attacks yet
+                        </span>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </TabsContent>
+        <TabsContent value="clan">coming soon</TabsContent>
+        <TabsContent value="opponent">coming soon</TabsContent>
+      </Tabs>
     </div>
   );
 }
