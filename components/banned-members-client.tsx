@@ -203,7 +203,7 @@ export default function BannedClientPage() {
   };
 
   return (
-    <Card className="shadow-md">
+    <Card className="shadow-md grid grid-cols-1 m-2">
       <CardHeader className="bg-muted/40">
         <CardTitle className="text-2xl font-bold">
           Banned Members List
@@ -225,7 +225,7 @@ export default function BannedClientPage() {
           />
         </div>
       </CardHeader>
-      <CardContent className="p-0">
+      <CardContent className="p-2 grid grid-cols-1 gap-4">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-10">
             <Loader2 className="h-8 w-8 animate-spin mb-2 text-primary" />
@@ -239,8 +239,8 @@ export default function BannedClientPage() {
             <p>{error}</p>
           </div>
         ) : filteredMembers.length > 0 ? (
-          <div className="overflow-x-auto">
-            <Table>
+          <div className="overflow-x-auto grid grid-cols-1">
+            <Table className="!max-w-[100%] table-auto">
               <TableHeader className="bg-muted/30">
                 <TableRow>
                   <TableHead className="w-[200px]">

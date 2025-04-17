@@ -13,7 +13,10 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertCircle, Clock, Info } from "lucide-react";
+import { WarAnalytics } from "@/components/war-analytics";
+import { WarHistory } from "@/components/war-history";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AlertCircle, Clock, Info, Swords, Trophy, Users } from "lucide-react";
 import { getCurrentWar } from "@/lib/api";
 import { ClanWar } from "@/types/clash";
 import { calculateTimeRemaining } from "@/lib/utils";
@@ -25,6 +28,7 @@ export default function WarPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [timeRemaining, setTimeRemaining] = useState<string>("");
+  const [activeTab, setActiveTab] = useState("overview");
 
   const router = useRouter();
   const clanTag = process.env.NEXT_PUBLIC_CLAN_TAG || "#GCVL29VJ";
@@ -55,7 +59,6 @@ export default function WarPage() {
 
         // Fetch current regular war
         const warData = await getCurrentWar(cleanClanTag);
-        // console.log("Current war data received:", warData);
         setCurrentWar(warData);
       } catch (err) {
         console.error("Error fetching war data:", err);
@@ -75,16 +78,19 @@ export default function WarPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto py-6 space-y-4">
+      <div className="container mx-auto py-6 px-4 space-y-4">
         <h1 className="text-3xl font-bold">Current War</h1>
-        <Skeleton className="h-96 w-full" />
+        <div className="grid grid-cols-1 gap-4">
+          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-64 w-full" />
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="container mx-auto py-6 space-y-4">
+      <div className="container mx-auto py-6 px-4 space-y-4">
         <h1 className="text-3xl font-bold">Current War</h1>
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
@@ -96,9 +102,9 @@ export default function WarPage() {
   }
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Current War</h1>
+    <div className="container mx-auto py-6 px-4 space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h1 className="text-3xl font-bold">Clan War Dashboard</h1>
         <Button onClick={navigateToCWL}>View Clan War League</Button>
       </div>
 
@@ -114,140 +120,338 @@ export default function WarPage() {
       )}
 
       {!currentWar || currentWar.state === "notInWar" ? (
-        <Alert>
-          <Info className="h-4 w-4" />
-          <AlertTitle>No Active War</AlertTitle>
-          <AlertDescription>
-            The clan is not currently participating in a regular war.
-            <Button variant="link" onClick={navigateToCWL}>
-              Check Clan War League
-            </Button>
-          </AlertDescription>
-        </Alert>
+        <div className="space-y-6">
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertTitle>No Active War</AlertTitle>
+            <AlertDescription className="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
+              <span>
+                The clan is not currently participating in a regular war.
+              </span>
+              <Button
+                variant="link"
+                onClick={navigateToCWL}
+                className="p-0 h-auto"
+              >
+                Check Clan War League
+              </Button>
+            </AlertDescription>
+          </Alert>
+
+          {/* Show war history even if there's no active war */}
+          <WarHistory clanTag={clanTag} />
+        </div>
       ) : (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* War Status Card */}
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle>War Status</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex justify-between items-center">
-                  <Badge
-                    className={
-                      currentWar.state === "inWar"
-                        ? "bg-green-600"
-                        : currentWar.state === "preparation"
-                        ? "bg-amber-600"
-                        : "bg-blue-600"
-                    }
-                  >
-                    {currentWar.state === "inWar"
-                      ? "Battle Day"
-                      : currentWar.state === "preparation"
-                      ? "Preparation Day"
-                      : "War Ended"}
-                  </Badge>
+          <Tabs
+            defaultValue="overview"
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="space-y-4"
+          >
+            <div className="overflow-x-auto pb-2">
+              <TabsList>
+                <TabsTrigger
+                  value="overview"
+                  className="flex items-center gap-1"
+                >
+                  <Trophy className="h-4 w-4" />
+                  <span className="sm:inline">Overview</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="attacks"
+                  className="flex items-center gap-1"
+                >
+                  <Swords className="h-4 w-4" />
+                  <span className="sm:inline">Attacks</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="analytics"
+                  className="flex items-center gap-1"
+                >
+                  <AlertCircle className="h-4 w-4" />
+                  <span className="sm:inline">Analytics</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="history"
+                  className="flex items-center gap-1"
+                >
+                  <Clock className="h-4 w-4" />
+                  <span className="sm:inline">History</span>
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
-                  {currentWar.state === "preparation" &&
-                    currentWar.startTime && (
-                      <div className="text-sm">
-                        Starts:{" "}
-                        {new Date(currentWar.startTime).toLocaleString()}
-                      </div>
-                    )}
+            <TabsContent value="overview" className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* War Status Card */}
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle>War Status</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex justify-between items-center">
+                      <Badge
+                        className={
+                          currentWar.state === "inWar"
+                            ? "bg-green-600"
+                            : currentWar.state === "preparation"
+                            ? "bg-amber-600"
+                            : "bg-blue-600"
+                        }
+                      >
+                        {currentWar.state === "inWar"
+                          ? "Battle Day"
+                          : currentWar.state === "preparation"
+                          ? "Preparation Day"
+                          : "War Ended"}
+                      </Badge>
 
-                  {currentWar.state === "inWar" && timeRemaining && (
-                    <div className="text-sm font-semibold">
-                      {timeRemaining} remaining
+                      {currentWar.state === "preparation" &&
+                        currentWar.startTime && (
+                          <div className="text-sm">
+                            Starts:{" "}
+                            {new Date(currentWar.startTime).toLocaleString()}
+                          </div>
+                        )}
+
+                      {currentWar.state === "inWar" && timeRemaining && (
+                        <div className="text-sm font-semibold">
+                          {timeRemaining} remaining
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+                  </CardContent>
+                </Card>
 
-            {/* Team Size Card */}
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle>Team Size</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {currentWar.teamSize} vs {currentWar.teamSize}
-                </div>
-                <CardDescription>2 attacks per member</CardDescription>
-              </CardContent>
-            </Card>
+                {/* Team Size Card */}
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle>Team Size</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center gap-2">
+                      <div className="text-2xl font-bold">
+                        {currentWar.teamSize} vs {currentWar.teamSize}
+                      </div>
+                      <Users className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <CardDescription>2 attacks per member</CardDescription>
+                  </CardContent>
+                </Card>
 
-            {/* Score Card */}
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle>Score</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex justify-between items-center">
-                  {/* Our clan */}
-                  <div className="text-center">
-                    <div className="mb-2">
+                {/* Score Card */}
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle>Score</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex justify-between items-center">
+                      {/* Our clan */}
+                      <div className="text-center">
+                        <div className="mb-2">
+                          <Image
+                            src={currentWar.clan.badgeUrls.small}
+                            alt={currentWar.clan.name}
+                            width={32}
+                            height={32}
+                            className="inline-block h-8 w-8"
+                          />
+                        </div>
+                        <div className="flex items-center">
+                          <div className="text-xl font-bold mr-1">
+                            {currentWar.clan.stars}
+                          </div>
+                          <Trophy className="h-4 w-4 fill-yellow-500 text-yellow-500" />
+                        </div>
+                        <div className="text-sm">
+                          {Math.round(currentWar.clan.destructionPercentage)}%
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {currentWar.clan.attacks} / {currentWar.teamSize * 2}{" "}
+                          attacks
+                        </div>
+                      </div>
+
+                      <div className="text-2xl font-bold mx-4">vs</div>
+
+                      {/* Opponent clan */}
+                      <div className="text-center">
+                        <div className="mb-2">
+                          <Image
+                            src={currentWar.opponent.badgeUrls.small}
+                            alt={currentWar.opponent.name}
+                            width={32}
+                            height={32}
+                            className="inline-block h-8 w-8"
+                          />
+                        </div>
+                        <div className="flex items-center">
+                          <div className="text-xl font-bold mr-1">
+                            {currentWar.opponent.stars}
+                          </div>
+                          <Trophy className="h-4 w-4 fill-yellow-500 text-yellow-500" />
+                        </div>
+                        <div className="text-sm">
+                          {Math.round(
+                            currentWar.opponent.destructionPercentage
+                          )}
+                          %
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {currentWar.opponent.attacks} /{" "}
+                          {currentWar.teamSize * 2} attacks
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Summary Cards Grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Clan Details */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Our Clan</CardTitle>
+                    <CardDescription>{currentWar.clan.name}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center gap-4">
                       <Image
                         src={currentWar.clan.badgeUrls.small}
                         alt={currentWar.clan.name}
-                        width={32}
-                        height={32}
-                        className="inline-block h-8 w-8"
+                        width={64}
+                        height={64}
+                        className="h-16 w-16"
                       />
+                      <div className="grid grid-cols-2 gap-x-12 gap-y-2 flex-1">
+                        <div className="flex flex-col">
+                          <span className="text-sm text-muted-foreground">
+                            Total Attacks
+                          </span>
+                          <span className="font-medium">
+                            {currentWar.clan.attacks} /{" "}
+                            {currentWar.teamSize * 2}
+                          </span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-sm text-muted-foreground">
+                            Stars Earned
+                          </span>
+                          <span className="font-medium flex items-center">
+                            {currentWar.clan.stars}
+                            <Trophy className="h-4 w-4 ml-1 fill-yellow-500 text-yellow-500" />
+                          </span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-sm text-muted-foreground">
+                            Destruction
+                          </span>
+                          <span className="font-medium">
+                            {Math.round(currentWar.clan.destructionPercentage)}%
+                          </span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-sm text-muted-foreground">
+                            Team Size
+                          </span>
+                          <span className="font-medium">
+                            {currentWar.teamSize} members
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="text-xl font-bold">
-                      {currentWar.clan.stars}
-                    </div>
-                    <div className="text-sm">
-                      {Math.round(currentWar.clan.destructionPercentage)}%
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {currentWar.clan.attacks} / {currentWar.teamSize * 2}{" "}
-                      attacks
-                    </div>
-                  </div>
+                  </CardContent>
+                </Card>
 
-                  <div className="text-2xl font-bold mx-4">vs</div>
-
-                  {/* Opponent clan */}
-                  <div className="text-center">
-                    <div className="mb-2">
+                {/* Opponent Details */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Opponent</CardTitle>
+                    <CardDescription>
+                      {currentWar.opponent.name}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center gap-4">
                       <Image
                         src={currentWar.opponent.badgeUrls.small}
                         alt={currentWar.opponent.name}
-                        width={32}
-                        height={32}
-                        className="inline-block h-8 w-8"
+                        width={64}
+                        height={64}
+                        className="h-16 w-16"
                       />
+                      <div className="grid grid-cols-2 gap-x-12 gap-y-2 flex-1">
+                        <div className="flex flex-col">
+                          <span className="text-sm text-muted-foreground">
+                            Total Attacks
+                          </span>
+                          <span className="font-medium">
+                            {currentWar.opponent.attacks} /{" "}
+                            {currentWar.teamSize * 2}
+                          </span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-sm text-muted-foreground">
+                            Stars Earned
+                          </span>
+                          <span className="font-medium flex items-center">
+                            {currentWar.opponent.stars}
+                            <Trophy className="h-4 w-4 ml-1 fill-yellow-500 text-yellow-500" />
+                          </span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-sm text-muted-foreground">
+                            Destruction
+                          </span>
+                          <span className="font-medium">
+                            {Math.round(
+                              currentWar.opponent.destructionPercentage
+                            )}
+                            %
+                          </span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-sm text-muted-foreground">
+                            Team Size
+                          </span>
+                          <span className="font-medium">
+                            {currentWar.teamSize} members
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="text-xl font-bold">
-                      {currentWar.opponent.stars}
-                    </div>
-                    <div className="text-sm">
-                      {Math.round(currentWar.opponent.destructionPercentage)}%
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {currentWar.opponent.attacks} / {currentWar.teamSize * 2}{" "}
-                      attacks
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
 
-          {/* War Attacks Table */}
-          <Card>
-            <CardHeader>
-              <CardTitle>War Attacks</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <WarAttacksTable warData={currentWar} />
-            </CardContent>
-          </Card>
+            <TabsContent value="attacks">
+              {/* War Attacks Table */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>War Attacks</CardTitle>
+                  <CardDescription>
+                    All attacks from both clans in this war
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <WarAttacksTable warData={currentWar} />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="analytics">
+              {/* War Analytics */}
+              <WarAnalytics warData={currentWar} />
+            </TabsContent>
+
+            <TabsContent value="history">
+              {/* War History */}
+              <WarHistory clanTag={clanTag} />
+            </TabsContent>
+          </Tabs>
         </div>
       )}
     </div>
