@@ -115,10 +115,12 @@ const isWarEndingSoon = (endTime?: string): boolean => {
     (endTimeDate.getTime() - now.getTime()) / (1000 * 60 * 60);
 
   // For debugging
-  console.debug("War end time:", endTime);
-  console.debug("Parsed end time:", endTimeDate.toISOString());
-  console.debug("Current time:", now.toISOString());
-  console.debug("Hours remaining:", hoursRemaining);
+  if (process.env.NODE_ENV === 'development') {
+    console.debug("War end time:", endTime);
+    console.debug("Parsed end time:", endTimeDate.toISOString());
+    console.debug("Current time:", now.toISOString());
+    console.debug("Hours remaining:", hoursRemaining);
+  }
 
   return hoursRemaining < 12 && hoursRemaining > 0;
 };
