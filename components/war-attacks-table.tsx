@@ -10,68 +10,50 @@ interface WarAttacksTableProps {
 export function WarAttacksTable({ warData }: WarAttacksTableProps) {
   const { clan, opponent } = warData;
 
-  // Combine both clan's members
-  const allMembers = [
-    ...clan.members.map((member) => ({
+  // Memoize the processed member arrays to avoid recalculating on every render
+  const { allMembers, clanMembers, opponentMembers } = React.useMemo(() => {
+    // Process clan members
+    const processedClanMembers = clan.members.map((member) => ({
       ...member,
       isOurClan: true,
-      // Ensure attacks are properly typed with order as string
       attacks: member.attacks?.map((attack) => ({
         ...attack,
-        // Convert any potential number to string if needed
         order:
           typeof attack.order === "number"
             ? String(attack.order)
             : attack.order,
       })),
-    })),
-    ...opponent.members.map((member) => ({
+    }));
+
+    // Process opponent members
+    const processedOpponentMembers = opponent.members.map((member) => ({
       ...member,
       isOurClan: false,
-      // Ensure attacks are properly typed with order as string
       attacks: member.attacks?.map((attack) => ({
         ...attack,
-        // Convert any potential number to string if needed
         order:
           typeof attack.order === "number"
             ? String(attack.order)
             : attack.order,
       })),
-    })),
-  ];
+    }));
 
-  // Sort by position in the war map
-  allMembers.sort((a, b) => a.mapPosition - b.mapPosition);
+    // Combine and sort all members
+    const processedAllMembers = [
+      ...processedClanMembers,
+      ...processedOpponentMembers,
+    ].sort((a, b) => a.mapPosition - b.mapPosition);
 
-  const clanMembers = clan.members.map((member) => ({
-    ...member,
-    isOurClan: true,
-    // Ensure attacks are properly typed with order as string
-    attacks: member.attacks?.map((attack) => ({
-      ...attack,
-      // Convert any potential number to string if needed
-      order:
-        typeof attack.order === "number" ? String(attack.order) : attack.order,
-    })),
-  }));
+    // Sort clan and opponent members
+    processedClanMembers.sort((a, b) => a.mapPosition - b.mapPosition);
+    processedOpponentMembers.sort((a, b) => a.mapPosition - b.mapPosition);
 
-  const opponentMembers = opponent.members.map((member) => ({
-    ...member,
-    isOurClan: false,
-    // Ensure attacks are properly typed with order as string
-    attacks: member.attacks?.map((attack) => ({
-      ...attack,
-      // Convert any potential number to string if needed
-      order:
-        typeof attack.order === "number" ? String(attack.order) : attack.order,
-    })),
-  }));
-
-  // Sort clan members by map position
-  clanMembers.sort((a, b) => a.mapPosition - b.mapPosition);
-
-  // Sort opponent members by map position
-  opponentMembers.sort((a, b) => a.mapPosition - b.mapPosition);
+    return {
+      allMembers: processedAllMembers,
+      clanMembers: processedClanMembers,
+      opponentMembers: processedOpponentMembers,
+    };
+  }, [clan.members, opponent.members]);
 
   return (
     <div className="overflow-x-auto">
