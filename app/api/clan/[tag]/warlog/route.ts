@@ -1,4 +1,5 @@
 import { fetchFromAPI } from "@/lib/api";
+import { WarLogEntry } from "@/types/clash";
 import { NextRequest, NextResponse } from "next/server";
 
 type tParams = Promise<{ tag: string }>;
@@ -18,8 +19,14 @@ export async function GET(
     const data = await fetchFromAPI(
       `/clans/${encodeURIComponent(clanTag)}/warlog`
     );
-    // console.log("API route: War log data received");
-    return NextResponse.json(data);
+
+    const warLogEntries = data.items as WarLogEntry[];
+    // filter out if attacks per member is 1, that is not a normal war
+    const filteredEntries = warLogEntries.filter(
+      (entry) => entry.attacksPerMember > 1
+    );
+
+    return NextResponse.json(filteredEntries);
   } catch (error) {
     console.error("API route: Error fetching war log:", error);
     return NextResponse.json(

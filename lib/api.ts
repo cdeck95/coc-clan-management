@@ -14,6 +14,7 @@ import {
   WarLeague,
   LeagueSeason,
   LeagueSeasonRanking,
+  WarLogEntry,
 } from "@/types/clash";
 import { getObject, putObject, listObjects } from "@/lib/aws-client";
 import {
@@ -865,7 +866,7 @@ export async function getWarLeagueGroup(
   }
 }
 
-export async function getWarLog(clanTag: string) {
+export async function getWarLog(clanTag: string): Promise<WarLogEntry[]> {
   try {
     // Remove # from the tag if present before encoding
     const cleanTag = clanTag.startsWith("#") ? clanTag.substring(1) : clanTag;
@@ -879,7 +880,8 @@ export async function getWarLog(clanTag: string) {
     });
 
     if (!response.ok) throw new Error("Failed to fetch war log");
-    return response.json();
+    const warLogEntries: WarLogEntry[] = await response.json();
+    return warLogEntries;
   } catch (error) {
     console.error("Error in getWarLog:", error);
     throw error;

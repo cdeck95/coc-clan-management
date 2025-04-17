@@ -13,6 +13,7 @@ import { ClanWar, WarLeagueGroup } from "@/types/clash";
 import { getCurrentWar, getWarLeagueGroup } from "@/lib/api";
 import { Swords, Trophy, Clock } from "lucide-react";
 import LoadingSpinner from "./ui/loading-spinner";
+import { WarAttacksTable } from "./war-attacks-table";
 
 // Use a clan tag without the hash or properly encode it when calling the API
 const CLAN_TAG = "#GCVL29VJ"; // Your clan tag
@@ -147,6 +148,11 @@ export default function WarStatusDashboard() {
               War{" "}
               {currentWar.state === "inWar" ? "in progress" : currentWar.state}
             </div>
+          </div>
+
+          {/* War Attacks Table Component */}
+          <div className="mt-6">
+            <WarAttacksTable warData={currentWar} />
           </div>
         </div>
       </CardContent>
