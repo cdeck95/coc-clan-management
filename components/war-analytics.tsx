@@ -13,6 +13,9 @@ import { ClanWar } from "@/types/clash";
 import { AlertTriangle, ArrowDown, ArrowUp, Award, Star } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Label } from "./ui/label";
+import { MemberNoteDialog } from "./member-note-dialog";
+import { toast } from "sonner";
+import { MemberStrikeDialog } from "./member-strike-dialog";
 
 interface WarAnalyticsProps {
   warData: ClanWar;
@@ -191,8 +194,47 @@ export function WarAnalytics({ warData }: WarAnalyticsProps) {
   };
 
   const attackAnalysis = analyzeAttacks();
+
+  const demoGreatAttack = {
+    attackerName: "Demo Attacker",
+    attackerTag: "#P8RUY922G",
+    defenderName: "Demo Defender",
+    defenderTag: "#654321",
+    attackerTH: 14,
+    defenderTH: 13,
+    attackerPosition: 1,
+    defenderPosition: 2,
+    stars: 3,
+    destructionPercentage: 100,
+    type: "great" as const,
+    reason: "Perfect three star attack!",
+  };
+  // Add a demo great attack for testing
+  attackAnalysis.push(demoGreatAttack);
+
+  const demoBlunderAttack = {
+    attackerName: "Demo Blunder",
+    attackerTag: "#P8RUY922G",
+    defenderName: "Demo Defender",
+    defenderTag: "#210987",
+    attackerTH: 12,
+    defenderTH: 13,
+    attackerPosition: 3,
+    defenderPosition: 4,
+    stars: 1,
+    destructionPercentage: 50,
+    type: "blunder" as const,
+    reason: "Failed to 3-star a higher TH!",
+  }; // Add a demo blunder attack for testing
+  attackAnalysis.push(demoBlunderAttack);
+
   const greatAttacks = attackAnalysis.filter((a) => a.type === "great");
   const blunders = attackAnalysis.filter((a) => a.type === "blunder");
+
+  // Handle data refresh after note or strike is saved
+  const handleDataSaved = async () => {
+    toast.success("Member data updated successfully");
+  };
 
   if (attackAnalysis.length === 0) {
     return (
@@ -304,6 +346,24 @@ export function WarAnalytics({ warData }: WarAnalyticsProps) {
                           {attack.destructionPercentage}% destruction
                         </Badge>
                       </div>
+
+                      {/* Add Quick Actions */}
+                      <div className="p-4 border-t">
+                        <p className="text-sm font-medium mb-2">
+                          Quick Actions
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {/* Add Note Button with Dialog directly in popover */}
+                          <MemberNoteDialog
+                            memberId={attack.attackerTag}
+                            memberName={attack.attackerName}
+                            onNoteSaved={handleDataSaved}
+                            buttonVariant="outline"
+                            buttonSize="sm"
+                            initialNote={`Great attack in war! ${attack.reason} [${attack.stars}⭐, ${attack.destructionPercentage}%]`}
+                          />
+                        </div>
+                      </div>
                     </PopoverContent>
                   </Popover>
                 ))}
@@ -326,16 +386,16 @@ export function WarAnalytics({ warData }: WarAnalyticsProps) {
                 {blunders.map((attack, idx) => (
                   <Popover key={idx}>
                     <PopoverTrigger asChild>
-                      <div className="flex justify-between w-full items-center gap-2 p-2 border rounded-md bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900 cursor-pointer hover:bg-green-100 dark:hover:bg-green-950/30 transition-colors">
+                      <div className="flex justify-between w-full items-center gap-2 p-2 border rounded-md bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900 cursor-pointer hover:bg-red-100 dark:hover:bg-red-950/30 transition-colors">
                         <div className="grid grid-cols-1 gap-1">
                           <div className="flex flex0-row gap-2 items-center font-medium truncate max-w-[80%]">
                             {attack.attackerName}{" "}
                             {attack.attackerTH > attack.defenderTH && (
-                              <ArrowDown className="h-4 w-4 text-green-500" />
+                              <ArrowDown className="h-4 w-4 text-red-500" />
                             )}
                             {attack.defenderPosition <
                               attack.attackerPosition && (
-                              <ArrowUp className="h-4 w-4 text-green-500" />
+                              <ArrowUp className="h-4 w-4 text-red-500" />
                             )}
                           </div>
 
@@ -418,6 +478,34 @@ export function WarAnalytics({ warData }: WarAnalyticsProps) {
                         <Badge variant="secondary">
                           {attack.destructionPercentage}% destruction
                         </Badge>
+                      </div>
+
+                      {/* Add Quick Actions */}
+                      <div className="p-4 border-t">
+                        <p className="text-sm font-medium mb-2">
+                          Quick Actions
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {/* Add Note Button */}
+                          <MemberNoteDialog
+                            memberId={attack.attackerTag}
+                            memberName={attack.attackerName}
+                            onNoteSaved={handleDataSaved}
+                            buttonVariant="outline"
+                            buttonSize="sm"
+                            initialNote={`Blunder attack in war! ${attack.reason} [${attack.stars}⭐, ${attack.destructionPercentage}%]`}
+                          />
+
+                          {/* Add Strike Button */}
+                          <MemberStrikeDialog
+                            memberId={attack.attackerTag}
+                            memberName={attack.attackerName}
+                            onStrikeSaved={handleDataSaved}
+                            buttonVariant="destructive"
+                            buttonSize="sm"
+                            initialReason={`Blunder attack in war! ${attack.reason} [${attack.stars}⭐, ${attack.destructionPercentage}%]`}
+                          />
+                        </div>
                       </div>
                     </PopoverContent>
                   </Popover>

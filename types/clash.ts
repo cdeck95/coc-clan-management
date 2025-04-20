@@ -16,12 +16,14 @@ export interface Clan {
     isCountry: boolean;
     countryCode: string;
   };
+  isFamilyFriendly: boolean;
   badgeUrls: BadgeUrls;
   clanLevel: number;
   clanPoints: number;
-  clanVersusPoints: number;
   requiredTrophies: number;
-  // Add the missing properties
+  clanBuilderBasePoints: 35848;
+  clanCapitalPoints: 3104;
+  capitalLeague: { id: 85000015; name: "Master League I" };
   requiredTownhallLevel?: number;
   chatLanguage?: {
     id: number;

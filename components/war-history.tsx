@@ -20,6 +20,13 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { getWarLog } from "@/lib/api";
 import { WarLogEntry } from "@/types/clash";
 import {
@@ -31,6 +38,9 @@ import {
   Clock,
   ChevronLeft,
   ChevronRight,
+  Shield,
+  Swords,
+  Percent,
 } from "lucide-react";
 import Image from "next/image";
 
@@ -103,6 +113,7 @@ export function WarHistory({ clanTag }: WarHistoryProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+  const [selectedWar, setSelectedWar] = useState<WarLogEntry | null>(null);
   const itemsPerPage = 5;
 
   useEffect(() => {
@@ -142,6 +153,10 @@ export function WarHistory({ clanTag }: WarHistoryProps) {
 
   const handleNextPage = () => {
     setPage((prev) => Math.min(prev + 1, totalPages));
+  };
+
+  const handleWarClick = (war: WarLogEntry) => {
+    setSelectedWar(war);
   };
 
   if (loading) {
@@ -199,16 +214,16 @@ export function WarHistory({ clanTag }: WarHistoryProps) {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center">
-          <Trophy className="h-5 w-5 mr-2 text-amber-500" />
-          War History
-        </CardTitle>
-        <CardDescription>Recent war results for the clan</CardDescription>
-      </CardHeader>
-      <CardContent className="md:px-6">
-        <div className="overflow-x-auto">
+    <>
+      <Card className="grid grid-cols-1 w-full">
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Trophy className="h-5 w-5 mr-2 text-amber-500" />
+            War History
+          </CardTitle>
+          <CardDescription>Recent war results for the clan</CardDescription>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 gap-4">
           <Table>
             <TableHeader>
               <TableRow>
@@ -220,14 +235,17 @@ export function WarHistory({ clanTag }: WarHistoryProps) {
             </TableHeader>
             <TableBody>
               {paginatedWarLog.map((war, index) => {
-                // Use the parsing utility to handle CoC API date format
                 const warDate = parseCoCAVIDate(war.endTime) || new Date();
                 const isWin = war.result === "win";
                 const isLoss = war.result === "lose";
                 const isDraw = war.result === "tie";
 
                 return (
-                  <TableRow key={index} className="hover:bg-muted/40">
+                  <TableRow
+                    key={index}
+                    className="hover:bg-muted/40 cursor-pointer"
+                    onClick={() => handleWarClick(war)}
+                  >
                     <TableCell>
                       <Badge
                         className={`${
@@ -294,31 +312,198 @@ export function WarHistory({ clanTag }: WarHistoryProps) {
               })}
             </TableBody>
           </Table>
-        </div>
-      </CardContent>
-      {totalPages > 1 && (
-        <CardFooter className="flex justify-between border-t px-6 py-4">
-          <Button
-            variant="outline"
-            onClick={handlePrevPage}
-            disabled={page === 1}
-          >
-            <ChevronLeft className="h-4 w-4 mr-2" />
-            Previous
-          </Button>
-          <div className="text-sm text-muted-foreground">
-            Page {page} of {totalPages}
-          </div>
-          <Button
-            variant="outline"
-            onClick={handleNextPage}
-            disabled={page === totalPages}
-          >
-            Next
-            <ChevronRight className="h-4 w-4 ml-2" />
-          </Button>
-        </CardFooter>
-      )}
-    </Card>
+        </CardContent>
+        {totalPages > 1 && (
+          <CardFooter className="flex justify-between border-t px-6 py-4">
+            <Button
+              variant="outline"
+              onClick={handlePrevPage}
+              disabled={page === 1}
+            >
+              <ChevronLeft className="h-4 w-4 mr-2" />
+              Previous
+            </Button>
+            <div className="text-sm text-muted-foreground">
+              Page {page} of {totalPages}
+            </div>
+            <Button
+              variant="outline"
+              onClick={handleNextPage}
+              disabled={page === totalPages}
+            >
+              Next
+              <ChevronRight className="h-4 w-4 ml-2" />
+            </Button>
+          </CardFooter>
+        )}
+      </Card>
+
+      <Dialog
+        open={!!selectedWar}
+        onOpenChange={(open) => !open && setSelectedWar(null)}
+      >
+        <DialogContent className="max-w-[90dvw] max-h-[90vh] overflow-y-auto">
+          {selectedWar && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Swords className="h-5 w-5 text-orange-500" />
+                  War Details
+                </DialogTitle>
+                <DialogDescription>
+                  {parseCoCAVIDate(selectedWar.endTime)?.toLocaleDateString()} -{" "}
+                  {selectedWar.teamSize} vs {selectedWar.teamSize}
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-4">
+                <Card className="border-2 border-primary/20">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Shield className="h-4 w-4" />
+                      Our Clan
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center gap-3 mb-4">
+                      {selectedWar.clan.badgeUrls?.small && (
+                        <Image
+                          src={selectedWar.clan.badgeUrls.small}
+                          alt={selectedWar.clan.name}
+                          width={36}
+                          height={36}
+                          className="h-9 w-9"
+                        />
+                      )}
+                      <div>
+                        <h3 className="font-semibold">
+                          {selectedWar.clan.name}
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          Level {selectedWar.clan.clanLevel}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-sm text-muted-foreground">
+                          Stars
+                        </span>
+                        <div className="flex items-center gap-1">
+                          <span className="text-xl font-semibold">
+                            {selectedWar.clan.stars}
+                          </span>
+                          <Star className="h-5 w-5 fill-yellow-500 text-yellow-500" />
+                        </div>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <span className="text-sm text-muted-foreground">
+                          Destruction
+                        </span>
+                        <div className="flex items-center gap-1">
+                          <span className="text-xl font-semibold">
+                            {Math.floor(selectedWar.clan.destructionPercentage)}
+                            %
+                          </span>
+                          <Percent className="h-4 w-4" />
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-2 border-destructive/20">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Swords className="h-4 w-4" />
+                      Opponent
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center gap-3 mb-4">
+                      {selectedWar.opponent.badgeUrls?.small && (
+                        <Image
+                          src={selectedWar.opponent.badgeUrls.small}
+                          alt={selectedWar.opponent.name}
+                          width={36}
+                          height={36}
+                          className="h-9 w-9"
+                        />
+                      )}
+                      <div>
+                        <h3 className="font-semibold">
+                          {selectedWar.opponent.name}
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          Level {selectedWar.opponent.clanLevel}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-sm text-muted-foreground">
+                          Stars
+                        </span>
+                        <div className="flex items-center gap-1">
+                          <span className="text-xl font-semibold">
+                            {selectedWar.opponent.stars}
+                          </span>
+                          <Star className="h-5 w-5 fill-yellow-500 text-yellow-500" />
+                        </div>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <span className="text-sm text-muted-foreground">
+                          Destruction
+                        </span>
+                        <div className="flex items-center gap-1">
+                          <span className="text-xl font-semibold">
+                            {Math.floor(
+                              selectedWar.opponent.destructionPercentage
+                            )}
+                            %
+                          </span>
+                          <Percent className="h-4 w-4" />
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div className="flex justify-center items-center gap-4 py-2 my-2">
+                <div
+                  className={`text-center px-6 py-3 rounded-lg ${
+                    selectedWar.result === "win"
+                      ? "bg-green-500/10 text-green-600"
+                      : selectedWar.result === "lose"
+                      ? "bg-red-500/10 text-red-600"
+                      : "bg-amber-500/10 text-amber-600"
+                  }`}
+                >
+                  <h3 className="text-xl font-bold flex items-center justify-center gap-2">
+                    {selectedWar.result === "win" && (
+                      <Check className="h-5 w-5" />
+                    )}
+                    {selectedWar.result === "lose" && <X className="h-5 w-5" />}
+                    {selectedWar.result === "tie" && (
+                      <Clock className="h-5 w-5" />
+                    )}
+                    {selectedWar.result?.toUpperCase()}
+                  </h3>
+                  <p className="text-sm opacity-80">War Result</p>
+                </div>
+              </div>
+
+              <div className="mt-2 text-center">
+                <p className="text-sm text-muted-foreground">
+                  Note: Detailed attack information is not available in the war
+                  log. Only current wars provide detailed attack data.
+                </p>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

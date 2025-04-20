@@ -33,6 +33,9 @@ interface MemberNoteDialogProps {
   buttonLabel?: string;
   existingNote?: MemberNote;
   isEditing?: boolean;
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  initialNote?: string;
 }
 
 export function MemberNoteDialog({
@@ -44,17 +47,37 @@ export function MemberNoteDialog({
   buttonLabel,
   existingNote,
   isEditing = false,
+  isOpen,
+  onOpenChange,
+  initialNote = "",
 }: MemberNoteDialogProps) {
-  const [note, setNote] = useState("");
+  const [note, setNote] = useState(initialNote || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(isOpen || false);
+
+  // Handle controlled dialog state from parent
+  useEffect(() => {
+    if (isOpen !== undefined) {
+      setOpen(isOpen);
+    }
+  }, [isOpen]);
+
+  // Handle open state changes
+  const handleOpenChange = (newOpen: boolean) => {
+    setOpen(newOpen);
+    if (onOpenChange) {
+      onOpenChange(newOpen);
+    }
+  };
 
   // Load existing note data if editing
   useEffect(() => {
     if (existingNote && isEditing) {
       setNote(existingNote.note);
+    } else if (initialNote && !isEditing) {
+      setNote(initialNote);
     }
-  }, [existingNote, isEditing]);
+  }, [existingNote, isEditing, initialNote]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,7 +108,7 @@ export function MemberNoteDialog({
 
       // Clear form and close dialog
       setNote("");
-      setOpen(false);
+      handleOpenChange(false);
 
       // Refresh the member data
       await onNoteSaved();
@@ -98,20 +121,22 @@ export function MemberNoteDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant={buttonVariant} size={buttonSize}>
-          {buttonLabel ? (
-            buttonLabel
-          ) : isEditing ? (
-            <FileEdit className="h-4 w-4" />
-          ) : (
-            <>
-              <Plus className="mr-2 h-4 w-4" /> Add Note
-            </>
-          )}
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      {!isOpen && (
+        <DialogTrigger asChild>
+          <Button variant={buttonVariant} size={buttonSize}>
+            {buttonLabel ? (
+              buttonLabel
+            ) : isEditing ? (
+              <FileEdit className="h-4 w-4" />
+            ) : (
+              <>
+                <Plus className="mr-2 h-4 w-4" /> Add Note
+              </>
+            )}
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-[425px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>

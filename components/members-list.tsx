@@ -264,7 +264,7 @@ export function MembersList({ members }: MembersListProps) {
 
   if (isMobile) {
     return (
-      <div className="container mx-auto px-4 py-6 space-y-4">
+      <div className="container mx-auto px-2 py-4 space-y-2">
         {members.map((member, idx) => {
           const donationRatio = getDonationRatio(
             member.donations,
@@ -403,7 +403,7 @@ export function MembersList({ members }: MembersListProps) {
               </div>
 
               <CollapsibleContent>
-                <div className="px-4 pb-3 pt-1 bg-muted/20">
+                <div className="px-3 pb-3 pt-1 bg-muted/20">
                   {loadingData[member.tag] ? (
                     <div className="py-4 text-center text-sm text-muted-foreground">
                       Loading member data...
@@ -525,102 +525,109 @@ export function MembersList({ members }: MembersListProps) {
                             </p>
                           )}
                         </div>
-                      </div>
-
-                      {/* Strikes section */}
-                      <div>
-                        <div className="flex justify-between items-center mb-2">
-                          <h4 className="text-sm font-medium">Strikes</h4>
-                          <MemberStrikeDialog
-                            memberId={member.tag}
-                            memberName={member.name}
-                            onStrikeSaved={() => handleDataRefresh(member.tag)}
-                            buttonVariant="ghost"
-                            buttonSize="sm"
-                            buttonLabel="Add"
-                          />
-                        </div>
-                        {memberStrikes[member.tag]?.length ? (
-                          <div className="space-y-2">
-                            {memberStrikes[member.tag].map((strike) => (
-                              <div
-                                key={strike.id}
-                                className="text-xs p-2 rounded bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"
-                              >
-                                <div className="flex justify-between items-start">
-                                  <p className="font-medium">{strike.reason}</p>
-                                  <div className="flex space-x-1 ml-2">
-                                    <MemberStrikeDialog
-                                      memberId={member.tag}
-                                      memberName={member.name}
-                                      onStrikeSaved={() =>
-                                        handleDataRefresh(member.tag)
-                                      }
-                                      buttonVariant="ghost"
-                                      buttonSize="icon"
-                                      existingStrike={strike}
-                                      isEditing={true}
-                                    />
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="h-5 w-5 p-0"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleDeleteStrike(
-                                          strike.id,
-                                          member.tag
-                                        );
-                                      }}
-                                    >
-                                      <Trash2 className="h-3 w-3" />
-                                    </Button>
+                        {/* Strikes section */}
+                        <div>
+                          <div className="flex justify-between items-center mb-2">
+                            <h4 className="text-sm font-medium">Strikes</h4>
+                            <MemberStrikeDialog
+                              memberId={member.tag}
+                              memberName={member.name}
+                              onStrikeSaved={() =>
+                                handleDataRefresh(member.tag)
+                              }
+                              buttonVariant="ghost"
+                              buttonSize="sm"
+                              buttonLabel="Add"
+                            />
+                          </div>
+                          {memberStrikes[member.tag]?.length ? (
+                            <div className="space-y-2">
+                              {memberStrikes[member.tag].map((strike) => (
+                                <div
+                                  key={strike.id}
+                                  className="text-xs p-2 rounded bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"
+                                >
+                                  <div className="flex justify-between items-start">
+                                    <p className="font-medium">
+                                      {strike.reason}
+                                    </p>
+                                    <div className="flex space-x-1 ml-2">
+                                      <MemberStrikeDialog
+                                        memberId={member.tag}
+                                        memberName={member.name}
+                                        onStrikeSaved={() =>
+                                          handleDataRefresh(member.tag)
+                                        }
+                                        buttonVariant="ghost"
+                                        buttonSize="icon"
+                                        existingStrike={strike}
+                                        isEditing={true}
+                                      />
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-5 w-5 p-0"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleDeleteStrike(
+                                            strike.id,
+                                            member.tag
+                                          );
+                                        }}
+                                      >
+                                        <Trash2 className="h-3 w-3" />
+                                      </Button>
+                                    </div>
                                   </div>
+                                  <p className="text-[10px] mt-1 text-muted-foreground">
+                                    {new Date(strike.date).toLocaleString()}
+                                  </p>
                                 </div>
-                                <p className="text-[10px] mt-1 text-muted-foreground">
-                                  {new Date(strike.date).toLocaleString()}
-                                </p>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-xs text-muted-foreground">
+                              No strikes recorded
+                            </p>
+                          )}
+                          <div className="mt-4 pt-3 border-t">
+                            <h4 className="text-sm font-medium mb-2">
+                              Donations
+                            </h4>
+                            <div className="grid grid-cols-2 gap-2 text-sm">
+                              <div>Donated:</div>
+                              <div className="font-medium text-green-600">
+                                {member.donations}
                               </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-xs text-muted-foreground">
-                            No strikes recorded
-                          </p>
-                        )}
-                        <div className="mt-4 pt-3 border-t">
-                          <h4 className="text-sm font-medium mb-2">
-                            Donations
-                          </h4>
-                          <div className="grid grid-cols-2 gap-2 text-sm">
-                            <div>Donated:</div>
-                            <div className="font-medium text-green-600">
-                              {member.donations}
+                              <div>Received:</div>
+                              <div className="font-medium text-blue-600">
+                                {member.donationsReceived}
+                              </div>
+                              <div>Ratio:</div>
+                              <div className="font-medium">
+                                {formattedRatio}
+                              </div>
                             </div>
-                            <div>Received:</div>
-                            <div className="font-medium text-blue-600">
-                              {member.donationsReceived}
-                            </div>
-                            <div>Ratio:</div>
-                            <div className="font-medium">{formattedRatio}</div>
                           </div>
-                        </div>
 
-                        {/* Add to Banned List button */}
-                        <div className="mt-4">
-                          <AddToBannedDialog
-                            memberId={member.tag}
-                            memberName={member.name}
-                            onMemberBanned={() => handleDataRefresh(member.tag)}
-                            buttonVariant="outline"
-                            buttonSize="sm"
-                            isBanned={
-                              bannedStatus[member.tag]?.isBanned || false
-                            }
-                            bannedMember={
-                              bannedStatus[member.tag]?.bannedMember || null
-                            }
-                          />
+                          {/* Add to Banned List button */}
+                          <div className="mt-4">
+                            <AddToBannedDialog
+                              memberId={member.tag}
+                              memberName={member.name}
+                              onMemberBanned={() =>
+                                handleDataRefresh(member.tag)
+                              }
+                              buttonVariant="outline"
+                              buttonSize="sm"
+                              isBanned={
+                                bannedStatus[member.tag]?.isBanned || false
+                              }
+                              bannedMember={
+                                bannedStatus[member.tag]?.bannedMember || null
+                              }
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>

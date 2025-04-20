@@ -19,7 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertCircle, Clock, Info, Swords, Trophy, Users } from "lucide-react";
 import { getCurrentWar } from "@/lib/api";
 import { ClanWar } from "@/types/clash";
-import { calculateTimeRemaining } from "@/lib/utils";
+import { calculateTimeRemaining, formatDate } from "@/lib/utils";
 import { WarAttacksTable } from "@/components/war-attacks-table";
 import Image from "next/image";
 
@@ -194,8 +194,7 @@ export default function WarPage() {
                       {currentWar.state === "preparation" &&
                         currentWar.startTime && (
                           <div className="text-sm">
-                            Starts:{" "}
-                            {new Date(currentWar.startTime).toLocaleString()}
+                            Starts: {formatDate(currentWar.startTime)}
                           </div>
                         )}
 
