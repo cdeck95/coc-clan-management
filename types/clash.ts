@@ -21,9 +21,9 @@ export interface Clan {
   clanLevel: number;
   clanPoints: number;
   requiredTrophies: number;
-  clanBuilderBasePoints: 35848;
-  clanCapitalPoints: 3104;
-  capitalLeague: { id: 85000015; name: "Master League I" };
+  clanBuilderBasePoints: number;
+  clanCapitalPoints: number;
+  capitalLeague: { id: number; name: string };
   requiredTownhallLevel?: number;
   chatLanguage?: {
     id: number;
