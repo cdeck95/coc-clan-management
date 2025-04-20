@@ -16,14 +16,14 @@ export interface Clan {
     isCountry: boolean;
     countryCode: string;
   };
-  isFamilyFriendly: boolean;
+  isFamilyFriendly?: boolean;
   badgeUrls: BadgeUrls;
   clanLevel: number;
   clanPoints: number;
   requiredTrophies: number;
   clanBuilderBasePoints: number;
-  clanCapitalPoints: number;
-  capitalLeague: { id: number; name: string };
+  clanCapitalPoints?: number;
+  capitalLeague?: { id: number; name: string };
   requiredTownhallLevel?: number;
   chatLanguage?: {
     id: number;
