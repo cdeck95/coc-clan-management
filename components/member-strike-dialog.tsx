@@ -33,6 +33,9 @@ interface MemberStrikeDialogProps {
   buttonLabel?: string;
   existingStrike?: MemberStrike;
   isEditing?: boolean;
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  initialReason?: string;
 }
 
 export function MemberStrikeDialog({
@@ -44,17 +47,37 @@ export function MemberStrikeDialog({
   buttonLabel,
   existingStrike,
   isEditing = false,
+  isOpen,
+  onOpenChange,
+  initialReason = "",
 }: MemberStrikeDialogProps) {
-  const [reason, setReason] = useState("");
+  const [reason, setReason] = useState(initialReason || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(isOpen || false);
+
+  // Handle controlled dialog state from parent
+  useEffect(() => {
+    if (isOpen !== undefined) {
+      setOpen(isOpen);
+    }
+  }, [isOpen]);
+
+  // Handle open state changes
+  const handleOpenChange = (newOpen: boolean) => {
+    setOpen(newOpen);
+    if (onOpenChange) {
+      onOpenChange(newOpen);
+    }
+  };
 
   // Load existing strike data if editing
   useEffect(() => {
     if (existingStrike && isEditing) {
       setReason(existingStrike.reason);
+    } else if (initialReason && !isEditing) {
+      setReason(initialReason);
     }
-  }, [existingStrike, isEditing]);
+  }, [existingStrike, isEditing, initialReason]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,7 +108,7 @@ export function MemberStrikeDialog({
 
       // Clear form and close dialog
       setReason("");
-      setOpen(false);
+      handleOpenChange(false);
 
       // Refresh the member data
       await onStrikeSaved();
@@ -98,20 +121,22 @@ export function MemberStrikeDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant={buttonVariant} size={buttonSize}>
-          {buttonLabel ? (
-            buttonLabel
-          ) : isEditing ? (
-            <FileEdit className="h-4 w-4" />
-          ) : (
-            <>
-              <AlertTriangle className="mr-2 h-4 w-4" /> Add Strike
-            </>
-          )}
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      {!isOpen && (
+        <DialogTrigger asChild>
+          <Button variant={buttonVariant} size={buttonSize}>
+            {buttonLabel ? (
+              buttonLabel
+            ) : isEditing ? (
+              <FileEdit className="h-4 w-4" />
+            ) : (
+              <>
+                <AlertTriangle className="mr-2 h-4 w-4" /> Add Strike
+              </>
+            )}
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-[425px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>

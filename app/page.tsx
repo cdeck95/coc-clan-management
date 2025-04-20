@@ -100,7 +100,7 @@ export default async function Dashboard() {
           <CardContent>
             <div className="text-2xl font-bold">{clanData.clanPoints}</div>
             <p className="text-xs text-muted-foreground mt-1">
-              Versus Points: {clanData.clanVersusPoints}
+              Builder Base Points: {clanData.clanBuilderBasePoints}
             </p>
           </CardContent>
         </Card>
