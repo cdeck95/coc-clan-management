@@ -195,38 +195,38 @@ export function WarAnalytics({ warData }: WarAnalyticsProps) {
 
   const attackAnalysis = analyzeAttacks();
 
-  const demoGreatAttack = {
-    attackerName: "Demo Attacker",
-    attackerTag: "#P8RUY922G",
-    defenderName: "Demo Defender",
-    defenderTag: "#654321",
-    attackerTH: 14,
-    defenderTH: 13,
-    attackerPosition: 1,
-    defenderPosition: 2,
-    stars: 3,
-    destructionPercentage: 100,
-    type: "great" as const,
-    reason: "Perfect three star attack!",
-  };
-  // Add a demo great attack for testing
-  attackAnalysis.push(demoGreatAttack);
+  // const demoGreatAttack = {
+  //   attackerName: "Demo Attacker",
+  //   attackerTag: "#P8RUY922G",
+  //   defenderName: "Demo Defender",
+  //   defenderTag: "#654321",
+  //   attackerTH: 14,
+  //   defenderTH: 13,
+  //   attackerPosition: 1,
+  //   defenderPosition: 2,
+  //   stars: 3,
+  //   destructionPercentage: 100,
+  //   type: "great" as const,
+  //   reason: "Perfect three star attack!",
+  // };
+  // // Add a demo great attack for testing
+  // attackAnalysis.push(demoGreatAttack);
 
-  const demoBlunderAttack = {
-    attackerName: "Demo Blunder",
-    attackerTag: "#P8RUY922G",
-    defenderName: "Demo Defender",
-    defenderTag: "#210987",
-    attackerTH: 12,
-    defenderTH: 13,
-    attackerPosition: 3,
-    defenderPosition: 4,
-    stars: 1,
-    destructionPercentage: 50,
-    type: "blunder" as const,
-    reason: "Failed to 3-star a higher TH!",
-  }; // Add a demo blunder attack for testing
-  attackAnalysis.push(demoBlunderAttack);
+  // const demoBlunderAttack = {
+  //   attackerName: "Demo Blunder",
+  //   attackerTag: "#P8RUY922G",
+  //   defenderName: "Demo Defender",
+  //   defenderTag: "#210987",
+  //   attackerTH: 12,
+  //   defenderTH: 13,
+  //   attackerPosition: 3,
+  //   defenderPosition: 4,
+  //   stars: 1,
+  //   destructionPercentage: 50,
+  //   type: "blunder" as const,
+  //   reason: "Failed to 3-star a higher TH!",
+  // }; // Add a demo blunder attack for testing
+  // attackAnalysis.push(demoBlunderAttack);
 
   const greatAttacks = attackAnalysis.filter((a) => a.type === "great");
   const blunders = attackAnalysis.filter((a) => a.type === "blunder");
