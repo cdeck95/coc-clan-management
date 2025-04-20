@@ -23,7 +23,7 @@ export const MOCK_CLAN_DATA: Clan = {
   },
   clanLevel: 10,
   clanPoints: 30000,
-  clanVersusPoints: 20000,
+  clanBuilderBasePoints: 20000,
   requiredTrophies: 2000,
   requiredTownhallLevel: 12,
   warFrequency: "always",
