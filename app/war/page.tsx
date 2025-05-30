@@ -157,7 +157,6 @@ export default function WarPage() {
             onValueChange={setActiveTab}
             className="space-y-4"
           >
-            {" "}
             <TabsList>
               <TabsTrigger value="overview" className="flex items-center gap-1">
                 <Trophy className="h-4 w-4" />

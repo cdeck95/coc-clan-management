@@ -7,42 +7,11 @@ import {
   CWLDefenseResult,
   CWLSeasonPoints,
 } from "@/types/clash";
-
-/**
- * Calculate points for an attack based on stars achieved
- */
-export function calculateAttackPoints(stars: number): number {
-  switch (stars) {
-    case 3:
-      return 2;
-    case 2:
-      return 1;
-    case 1:
-      return -3;
-    case 0:
-      return -3;
-    default:
-      return 0;
-  }
-}
-
-/**
- * Calculate points for defense based on stars given to attacker
- */
-export function calculateDefensePoints(starsGiven: number): number {
-  switch (starsGiven) {
-    case 0:
-      return 3; // Perfect defense
-    case 1:
-      return 2;
-    case 2:
-      return 1;
-    case 3:
-      return 0; // No points for getting 3-starred
-    default:
-      return 0;
-  }
-}
+import {
+  calculateAttackPoints,
+  calculateDefensePoints,
+  findMemberByTag,
+} from "./war-scoring";
 
 /**
  * Process a single war to extract attack and defense results for points calculation
@@ -217,7 +186,6 @@ export function calculateCWLSeasonPoints(
       completedWarDays++;
     });
   });
-
   return {
     season: leagueGroup.season,
     clanTag,
@@ -226,24 +194,17 @@ export function calculateCWLSeasonPoints(
       (a, b) => b.totalPoints - a.totalPoints
     ),
     totalWarDays: leagueGroup.rounds.length,
-    completedWarDays: Math.floor(completedWarDays / leagueGroup.clans.length), // Approximate completed rounds
+    completedWarDays: Math.min(completedWarDays, leagueGroup.rounds.length), // Ensure completed rounds do not exceed total rounds
   };
-}
-
-/**
- * Helper function to find a member by their tag
- */
-function findMemberByTag(
-  members: { tag: string; name: string }[],
-  tag: string
-): { tag: string; name: string } | undefined {
-  return members.find((member) => member.tag === tag);
 }
 
 /**
  * Get points summary for a specific member
  */
-export function getMemberPointsSummary(memberPoints: CWLMemberPoints) {
+export function getMemberPointsSummary(
+  memberPoints: CWLMemberPoints,
+  totalRounds: number
+) {
   const avgAttackPoints =
     memberPoints.attacksUsed > 0
       ? memberPoints.attackPoints / memberPoints.attacksUsed
@@ -257,7 +218,7 @@ export function getMemberPointsSummary(memberPoints: CWLMemberPoints) {
     ...memberPoints,
     avgAttackPoints: Math.round(avgAttackPoints * 100) / 100,
     avgDefensePoints: Math.round(avgDefensePoints * 100) / 100,
-    participationRate: (memberPoints.attacksUsed / 7) * 100, // Assuming 7 war days max
+    participationRate: (memberPoints.attacksUsed / totalRounds) * 100,
   };
 }
 
@@ -275,10 +236,11 @@ export function exportPointsToCSV(seasonPoints: CWLSeasonPoints): string {
     "Times Defended",
     "Avg Attack Points",
     "Avg Defense Points",
+    "Participation Rate (%)",
   ];
 
   const rows = seasonPoints.memberPoints.map((member) => {
-    const summary = getMemberPointsSummary(member);
+    const summary = getMemberPointsSummary(member, seasonPoints.totalWarDays);
     return [
       member.memberName,
       member.memberTag,
