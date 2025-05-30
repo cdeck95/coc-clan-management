@@ -3,6 +3,17 @@
  */
 
 /**
+ * Helper function to find a member by their tag from a list of members
+ * Generic function that works with any member type that has tag and name properties
+ */
+export function findMemberByTag<T extends { tag: string; name: string }>(
+  members: T[],
+  tag: string
+): T | undefined {
+  return members.find((member) => member.tag === tag);
+}
+
+/**
  * Calculate points for an attack based on stars achieved
  *
  * Scoring system:

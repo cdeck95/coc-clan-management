@@ -7,7 +7,11 @@ import {
   CWLDefenseResult,
   CWLSeasonPoints,
 } from "@/types/clash";
-import { calculateAttackPoints, calculateDefensePoints } from "./war-scoring";
+import {
+  calculateAttackPoints,
+  calculateDefensePoints,
+  findMemberByTag,
+} from "./war-scoring";
 
 /**
  * Process a single war to extract attack and defense results for points calculation
@@ -192,16 +196,6 @@ export function calculateCWLSeasonPoints(
     totalWarDays: leagueGroup.rounds.length,
     completedWarDays: Math.min(completedWarDays, leagueGroup.rounds.length), // Ensure completed rounds do not exceed total rounds
   };
-}
-
-/**
- * Helper function to find a member by their tag
- */
-function findMemberByTag(
-  members: { tag: string; name: string }[],
-  tag: string
-): { tag: string; name: string } | undefined {
-  return members.find((member) => member.tag === tag);
 }
 
 /**

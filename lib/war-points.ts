@@ -1,5 +1,9 @@
-import { ClanWar, WarAttack, WarMember } from "@/types/clash";
-import { calculateAttackPoints, calculateDefensePoints } from "./war-scoring";
+import { ClanWar, WarAttack } from "@/types/clash";
+import {
+  calculateAttackPoints,
+  calculateDefensePoints,
+  findMemberByTag,
+} from "./war-scoring";
 
 export interface WarMemberPoints {
   memberTag: string;
@@ -171,16 +175,6 @@ export function calculateWarPoints(
     totalAttackPoints,
     totalDefensePoints,
   };
-}
-
-/**
- * Helper function to find a member by their tag
- */
-function findMemberByTag(
-  members: WarMember[],
-  tag: string
-): WarMember | undefined {
-  return members.find((member) => member.tag === tag);
 }
 
 /**
