@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/popover";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { WarLeagueAttacksTable } from "@/components/war-league-attacks-table";
+import { CWLPointsTracker } from "@/components/cwl-points-tracker";
 import Image from "next/image";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -55,6 +56,7 @@ export default function WarLeaguePage() {
   const [timeRemaining, setTimeRemaining] = useState<string>("");
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const [showOverview, setShowOverview] = useState(false);
+  const [showPoints, setShowPoints] = useState(false);
 
   const router = useRouter();
   const clanTag = process.env.NEXT_PUBLIC_CLAN_TAG || "#GCVL29VJ";
@@ -516,22 +518,38 @@ export default function WarLeaguePage() {
                 <CardDescription>
                   {leagueGroup?.season} - {leagueGroup?.clans.length} Clans
                 </CardDescription>
-              </CardHeader>
+              </CardHeader>{" "}
               <CardContent className="p-4 pt-0">
                 <div className="flex justify-between mb-3">
                   <h3 className="text-sm font-semibold flex items-center">
                     <Calendar className="h-4 w-4 mr-2" /> Rounds
                   </h3>
-                  <Button
-                    variant={showOverview ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setShowOverview(!showOverview)}
-                    className="text-xs h-7"
-                  >
-                    {showOverview ? "Hide Overview" : "Show Overview"}
-                  </Button>
+                  <div className="flex gap-1">
+                    <Button
+                      variant={showOverview ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => {
+                        setShowOverview(!showOverview);
+                        setShowPoints(false);
+                      }}
+                      className="text-xs h-7"
+                    >
+                      {showOverview ? "Hide Overview" : "Overview"}
+                    </Button>
+                    <Button
+                      variant={showPoints ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => {
+                        setShowPoints(!showPoints);
+                        setShowOverview(false);
+                      }}
+                      className="text-xs h-7"
+                    >
+                      <BarChart3 className="h-3 w-3 mr-1" />
+                      {showPoints ? "Hide Points" : "Points"}
+                    </Button>
+                  </div>
                 </div>
-
                 {/* Round selector buttons - better responsive design */}
                 <div className="flex flex-wrap gap-1 sm:gap-2 mb-3">
                   {leagueGroup?.rounds?.map((round, index) => (
@@ -546,6 +564,7 @@ export default function WarLeaguePage() {
                       onClick={() => {
                         setSelectedRound(index);
                         setShowOverview(false);
+                        setShowPoints(false);
                       }}
                       className={
                         getClanWarsForRound(index).some(
@@ -565,10 +584,9 @@ export default function WarLeaguePage() {
                       )}
                     </Button>
                   ))}
-                </div>
-
+                </div>{" "}
                 {/* Matchups section - improved */}
-                {!showOverview ? (
+                {!showOverview && !showPoints ? (
                   <div className="space-y-2 mt-4">
                     <h3 className="text-sm font-semibold">
                       Round {selectedRound + 1} Matchups
@@ -643,7 +661,7 @@ export default function WarLeaguePage() {
                       }
                     )}
                   </div>
-                ) : (
+                ) : showOverview ? (
                   <div className="space-y-4 mt-4">
                     {/* Overview Mode - Our Clan's Wars */}
                     <div>
@@ -680,6 +698,7 @@ export default function WarLeaguePage() {
                               handleSelectWar(war);
                               setSelectedRound(round - 1);
                               setShowOverview(false);
+                              setShowPoints(false);
                             }}
                           >
                             <div className="flex justify-between items-center">
@@ -814,16 +833,23 @@ export default function WarLeaguePage() {
                               </tr>
                             ))}
                           </tbody>
-                        </table>
+                        </table>{" "}
                       </div>
                     </div>
                   </div>
-                )}
+                ) : showPoints ? (
+                  <div className="mt-4">
+                    <CWLPointsTracker
+                      leagueGroup={leagueGroup}
+                      allWars={leagueWars}
+                      clanTag={clanTag}
+                    />
+                  </div>
+                ) : null}
               </CardContent>
-            </Card>
-
+            </Card>{" "}
             {/* Standings Card - Only show in non-overview mode */}
-            {!showOverview && (
+            {!showOverview && !showPoints && (
               <Card>
                 <CardHeader className="p-3 pb-1">
                   <CardTitle className="flex items-center text-lg">

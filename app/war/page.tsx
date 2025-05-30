@@ -16,11 +16,20 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { WarAnalytics } from "@/components/war-analytics";
 import { WarHistory } from "@/components/war-history";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AlertCircle, Clock, Info, Swords, Trophy, Users } from "lucide-react";
+import {
+  AlertCircle,
+  Clock,
+  Info,
+  Swords,
+  Trophy,
+  Users,
+  Target,
+} from "lucide-react";
 import { getCurrentWar } from "@/lib/api";
 import { ClanWar } from "@/types/clash";
 import { calculateTimeRemaining, formatDate } from "@/lib/utils";
 import { WarAttacksTable } from "@/components/war-attacks-table";
+import { WarPointsTracker } from "@/components/war-points-tracker";
 import Image from "next/image";
 
 export default function WarPage() {
@@ -148,6 +157,7 @@ export default function WarPage() {
             onValueChange={setActiveTab}
             className="space-y-4"
           >
+            {" "}
             <TabsList>
               <TabsTrigger value="overview" className="flex items-center gap-1">
                 <Trophy className="h-4 w-4" />
@@ -164,8 +174,11 @@ export default function WarPage() {
                 <AlertCircle className="h-4 w-4" />
                 <span className="sm:inline">Analytics</span>
               </TabsTrigger>
+              <TabsTrigger value="points" className="flex items-center gap-1">
+                <Target className="h-4 w-4" />
+                <span className="sm:inline">Points</span>
+              </TabsTrigger>
             </TabsList>
-
             <TabsContent value="overview" className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* War Status Card */}
@@ -409,7 +422,6 @@ export default function WarPage() {
                 </Card>
               </div>
             </TabsContent>
-
             <TabsContent value="attacks">
               {/* War Attacks Table */}
               <Card>
@@ -423,11 +435,14 @@ export default function WarPage() {
                   <WarAttacksTable warData={currentWar} />
                 </CardContent>
               </Card>
-            </TabsContent>
-
+            </TabsContent>{" "}
             <TabsContent value="analytics">
               {/* War Analytics */}
               <WarAnalytics warData={currentWar} />
+            </TabsContent>
+            <TabsContent value="points">
+              {/* War Points Tracker */}
+              <WarPointsTracker war={currentWar} clanTag={clanTag} />
             </TabsContent>
           </Tabs>
         </div>
