@@ -518,7 +518,7 @@ export default function WarLeaguePage() {
                 <CardDescription>
                   {leagueGroup?.season} - {leagueGroup?.clans.length} Clans
                 </CardDescription>
-              </CardHeader>{" "}
+              </CardHeader>
               <CardContent className="p-4 pt-0">
                 <div className="flex justify-between mb-3">
                   <h3 className="text-sm font-semibold flex items-center">

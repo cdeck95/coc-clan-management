@@ -270,10 +270,13 @@ export function CWLPointsTracker({
                     <TableHead className="text-center">Defense</TableHead>
                     <TableHead className="text-center">Participation</TableHead>
                   </TableRow>
-                </TableHeader>
+                </TableHeader>{" "}
                 <TableBody>
                   {seasonPoints.memberPoints.map((member, index) => {
-                    const summary = getMemberPointsSummary(member);
+                    const summary = getMemberPointsSummary(
+                      member,
+                      seasonPoints.totalWarDays
+                    );
                     return (
                       <TableRow
                         key={member.memberTag}
@@ -369,10 +372,13 @@ export function CWLPointsTracker({
                         Times Defended
                       </TableHead>
                     </TableRow>
-                  </TableHeader>
+                  </TableHeader>{" "}
                   <TableBody>
                     {seasonPoints.memberPoints.map((member) => {
-                      const summary = getMemberPointsSummary(member);
+                      const summary = getMemberPointsSummary(
+                        member,
+                        seasonPoints.totalWarDays
+                      );
                       return (
                         <TableRow key={member.memberTag}>
                           <TableCell>
