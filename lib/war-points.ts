@@ -1,4 +1,5 @@
 import { ClanWar, WarAttack, WarMember } from "@/types/clash";
+import { calculateAttackPoints, calculateDefensePoints } from "./war-scoring";
 
 export interface WarMemberPoints {
   memberTag: string;
@@ -43,43 +44,6 @@ export interface WarPointsSummary {
   topDefender: WarMemberPoints | null;
   totalAttackPoints: number;
   totalDefensePoints: number;
-}
-
-/**
- * Calculate points for an attack based on stars achieved
- * Same scoring system as CWL but accounts for 2 attacks per member
- */
-export function calculateAttackPoints(stars: number): number {
-  switch (stars) {
-    case 3:
-      return 2;
-    case 2:
-      return 1;
-    case 1:
-      return -3;
-    case 0:
-      return -3;
-    default:
-      return 0;
-  }
-}
-
-/**
- * Calculate points for defense based on stars given to attacker
- */
-export function calculateDefensePoints(starsGiven: number): number {
-  switch (starsGiven) {
-    case 0:
-      return 3; // Perfect defense
-    case 1:
-      return 2;
-    case 2:
-      return 1;
-    case 3:
-      return 0; // No points for getting 3-starred
-    default:
-      return 0;
-  }
 }
 
 /**

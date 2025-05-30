@@ -7,42 +7,7 @@ import {
   CWLDefenseResult,
   CWLSeasonPoints,
 } from "@/types/clash";
-
-/**
- * Calculate points for an attack based on stars achieved
- */
-export function calculateAttackPoints(stars: number): number {
-  switch (stars) {
-    case 3:
-      return 2;
-    case 2:
-      return 1;
-    case 1:
-      return -3;
-    case 0:
-      return -3;
-    default:
-      return 0;
-  }
-}
-
-/**
- * Calculate points for defense based on stars given to attacker
- */
-export function calculateDefensePoints(starsGiven: number): number {
-  switch (starsGiven) {
-    case 0:
-      return 3; // Perfect defense
-    case 1:
-      return 2;
-    case 2:
-      return 1;
-    case 3:
-      return 0; // No points for getting 3-starred
-    default:
-      return 0;
-  }
-}
+import { calculateAttackPoints, calculateDefensePoints } from "./war-scoring";
 
 /**
  * Process a single war to extract attack and defense results for points calculation
@@ -277,6 +242,7 @@ export function exportPointsToCSV(seasonPoints: CWLSeasonPoints): string {
     "Times Defended",
     "Avg Attack Points",
     "Avg Defense Points",
+    "Participation Rate (%)",
   ];
 
   const rows = seasonPoints.memberPoints.map((member) => {
