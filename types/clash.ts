@@ -198,6 +198,50 @@ export interface ClanWarLeagueWar {
   // Remove attacksPerMember as it's not part of the API response
 }
 
+// CWL Points Tracking Interfaces
+export interface CWLMemberPoints {
+  memberTag: string;
+  memberName: string;
+  attackPoints: number;
+  defensePoints: number;
+  totalPoints: number;
+  attacksUsed: number;
+  timesDefended: number;
+  attackHistory: CWLAttackResult[];
+  defenseHistory: CWLDefenseResult[];
+}
+
+export interface CWLAttackResult {
+  warTag: string;
+  round: number;
+  defenderTag: string;
+  defenderName: string;
+  stars: number;
+  destructionPercentage: number;
+  points: number;
+  timestamp: string;
+}
+
+export interface CWLDefenseResult {
+  warTag: string;
+  round: number;
+  attackerTag: string;
+  attackerName: string;
+  starsGiven: number;
+  destructionPercentage: number;
+  points: number;
+  timestamp: string;
+}
+
+export interface CWLSeasonPoints {
+  season: string;
+  clanTag: string;
+  lastUpdated: string;
+  memberPoints: CWLMemberPoints[];
+  totalWarDays: number;
+  completedWarDays: number;
+}
+
 // War-related types
 export interface ClanWar {
   state: "notInWar" | "preparation" | "inWar" | "warEnded";
