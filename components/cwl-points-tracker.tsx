@@ -168,7 +168,6 @@ export function CWLPointsTracker({
           </div>
         </CardContent>
       </Card>
-
       {/* Points System Info */}
       <Card>
         <CardHeader>
@@ -237,16 +236,29 @@ export function CWLPointsTracker({
             </div>
           </div>
         </CardContent>
-      </Card>
-
+      </Card>{" "}
       {/* Main Content */}
       <Tabs defaultValue="leaderboard" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
-          <TabsTrigger value="detailed">Detailed View</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-3">
+          <TabsTrigger value="leaderboard" className="text-xs sm:text-sm">
+            <span className="hidden sm:inline">Leaderboard</span>
+            <span className="sm:hidden">Ranks</span>
+          </TabsTrigger>
+          <TabsTrigger value="detailed" className="text-xs sm:text-sm">
+            <span className="hidden sm:inline">Detailed View</span>
+            <span className="sm:hidden">Details</span>
+          </TabsTrigger>
           {selectedMemberData && (
-            <TabsTrigger value="member-detail">
-              {selectedMemberData.memberName}
+            <TabsTrigger
+              value="member-detail"
+              className="text-xs sm:text-sm col-span-2 lg:col-span-1"
+            >
+              <span className="hidden sm:inline">
+                {selectedMemberData.memberName}
+              </span>
+              <span className="sm:hidden truncate max-w-[80px]">
+                {selectedMemberData.memberName.split(" ")[0]}
+              </span>
             </TabsTrigger>
           )}
         </TabsList>

@@ -139,7 +139,6 @@ export function WarPointsTracker({ war, clanTag }: WarPointsTrackerProps) {
           Export CSV
         </Button>
       </div>
-
       {/* Stats Overview */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
@@ -191,13 +190,21 @@ export function WarPointsTracker({ war, clanTag }: WarPointsTrackerProps) {
             </div>
           </CardContent>
         </Card>
-      </div>
-
+      </div>{" "}
       <Tabs defaultValue="leaderboard" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
-          <TabsTrigger value="breakdown">Breakdown</TabsTrigger>
-          <TabsTrigger value="scoring">Scoring System</TabsTrigger>
+          <TabsTrigger value="leaderboard" className="text-xs sm:text-sm">
+            <span className="hidden sm:inline">Leaderboard</span>
+            <span className="sm:hidden">Ranks</span>
+          </TabsTrigger>
+          <TabsTrigger value="breakdown" className="text-xs sm:text-sm">
+            <span className="hidden sm:inline">Breakdown</span>
+            <span className="sm:hidden">Stats</span>
+          </TabsTrigger>
+          <TabsTrigger value="scoring" className="text-xs sm:text-sm">
+            <span className="hidden sm:inline">Scoring System</span>
+            <span className="sm:hidden">Rules</span>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="leaderboard" className="space-y-4">
@@ -518,187 +525,198 @@ export function WarPointsTracker({ war, clanTag }: WarPointsTrackerProps) {
             </CardContent>
           </Card>
         </TabsContent>
-      </Tabs>
-
-      {/* Member Detail Dialog */}
+      </Tabs>      {/* Member Detail Dialog */}
       <Dialog
         open={!!selectedMember}
         onOpenChange={() => setSelectedMember(null)}
       >
-        <DialogContent className="max-w-4xl max-h-[80vh]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Trophy className="h-5 w-5" />
-              {selectedMember?.memberName} - Detailed Performance
+        <DialogContent className="max-h-[95dvh] w-[95vw] max-w-4xl p-0">
+          <DialogHeader className="px-4 pt-4 pb-2">
+            <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <Trophy className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="truncate">{selectedMember?.memberName} - Performance</span>
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-sm">
               Complete attack and defense breakdown for this war
             </DialogDescription>
           </DialogHeader>
 
           {selectedMember && (
-            <ScrollArea className="max-h-[60vh]">
-              <div className="space-y-6">
+            <ScrollArea className="max-h-[75vh] px-4 pb-4">
+              <div className="space-y-4 sm:space-y-6">
                 {/* Member Summary */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="text-center">
-                    <p className="text-sm text-muted-foreground">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">                  <div className="text-center p-2 sm:p-3 bg-muted/30 rounded-lg">
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       Total Points
                     </p>
                     <p
-                      className={`text-2xl font-bold ${getPointsColor(
+                      className={`text-lg sm:text-2xl font-bold ${getPointsColor(
                         selectedMember.totalPoints
                       )}`}
                     >
                       {selectedMember.totalPoints}
                     </p>
                   </div>
-                  <div className="text-center">
-                    <p className="text-sm text-muted-foreground">
+                  <div className="text-center p-2 sm:p-3 bg-muted/30 rounded-lg">
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       Attack Points
                     </p>
                     <p
-                      className={`text-2xl font-bold ${getPointsColor(
+                      className={`text-lg sm:text-2xl font-bold ${getPointsColor(
                         selectedMember.attackPoints
                       )}`}
                     >
                       {selectedMember.attackPoints}
                     </p>
                   </div>
-                  <div className="text-center">
-                    <p className="text-sm text-muted-foreground">
+                  <div className="text-center p-2 sm:p-3 bg-muted/30 rounded-lg">
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       Defense Points
                     </p>
                     <p
-                      className={`text-2xl font-bold ${getPointsColor(
+                      className={`text-lg sm:text-2xl font-bold ${getPointsColor(
                         selectedMember.defensePoints
                       )}`}
                     >
                       {selectedMember.defensePoints}
                     </p>
                   </div>
-                  <div className="text-center">
-                    <p className="text-sm text-muted-foreground">
+                  <div className="text-center p-2 sm:p-3 bg-muted/30 rounded-lg">
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       Attacks Used
                     </p>
-                    <p className="text-2xl font-bold">
+                    <p className="text-lg sm:text-2xl font-bold">
                       {selectedMember.attacksUsed}/2
                     </p>
                   </div>
-                </div>
-
-                {/* Attacks */}
+                </div>                {/* Attacks */}
                 {selectedMember.attackHistory.length > 0 && (
                   <div>
-                    <h4 className="font-semibold mb-3 flex items-center gap-2">
+                    <h4 className="font-semibold mb-3 flex items-center gap-2 text-sm sm:text-base">
                       <Swords className="h-4 w-4" />
                       Attacks Made
                     </h4>
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Order</TableHead>
-                          <TableHead>Defender</TableHead>
-                          <TableHead>Position</TableHead>
-                          <TableHead>Stars</TableHead>
-                          <TableHead>Destruction</TableHead>
-                          <TableHead>Points</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {selectedMember.attackHistory.map((attack, index) => (
-                          <TableRow key={index}>
-                            <TableCell>{attack.attackOrder}</TableCell>
-                            <TableCell>{attack.defenderName}</TableCell>
-                            <TableCell>#{attack.defenderPosition}</TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-1">
-                                {Array.from({ length: 3 }, (_, i) => (
-                                  <Star
-                                    key={i}
-                                    className={`h-4 w-4 ${
-                                      i < attack.stars
-                                        ? "text-yellow-500 fill-current"
-                                        : "text-gray-300"
-                                    }`}
-                                  />
-                                ))}
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              {attack.destructionPercentage}%
-                            </TableCell>
-                            <TableCell
-                              className={getPointsColor(attack.points)}
-                            >
-                              {attack.points > 0 ? "+" : ""}
-                              {attack.points}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+                    <div className="border rounded-lg overflow-hidden">
+                      <div className="overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead className="text-xs sm:text-sm whitespace-nowrap">Order</TableHead>
+                              <TableHead className="text-xs sm:text-sm min-w-[100px]">Defender</TableHead>
+                              <TableHead className="text-xs sm:text-sm whitespace-nowrap">Position</TableHead>
+                              <TableHead className="text-xs sm:text-sm whitespace-nowrap">Stars</TableHead>
+                              <TableHead className="text-xs sm:text-sm whitespace-nowrap hidden sm:table-cell">Destruction</TableHead>
+                              <TableHead className="text-xs sm:text-sm whitespace-nowrap">Points</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {selectedMember.attackHistory.map((attack, index) => (
+                              <TableRow key={index}>
+                                <TableCell className="text-xs sm:text-sm">{attack.attackOrder}</TableCell>
+                                <TableCell className="text-xs sm:text-sm">
+                                  <div className="truncate max-w-[100px] sm:max-w-none" title={attack.defenderName}>
+                                    {attack.defenderName}
+                                  </div>
+                                </TableCell>
+                                <TableCell className="text-xs sm:text-sm">#{attack.defenderPosition}</TableCell>
+                                <TableCell>
+                                  <div className="flex items-center gap-0.5 sm:gap-1">
+                                    {Array.from({ length: 3 }, (_, i) => (
+                                      <Star
+                                        key={i}
+                                        className={`h-3 w-3 sm:h-4 sm:w-4 ${
+                                          i < attack.stars
+                                            ? "text-yellow-500 fill-current"
+                                            : "text-gray-300"
+                                        }`}
+                                      />
+                                    ))}
+                                  </div>
+                                </TableCell>
+                                <TableCell className="text-xs sm:text-sm hidden sm:table-cell">
+                                  {attack.destructionPercentage}%
+                                </TableCell>
+                                <TableCell
+                                  className={`text-xs sm:text-sm font-medium ${getPointsColor(attack.points)}`}
+                                >
+                                  {attack.points > 0 ? "+" : ""}
+                                  {attack.points}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </div>
                   </div>
-                )}
-
-                {/* Defenses */}
+                )}                {/* Defenses */}
                 {selectedMember.defenseHistory.length > 0 && (
                   <div>
-                    <h4 className="font-semibold mb-3 flex items-center gap-2">
+                    <h4 className="font-semibold mb-3 flex items-center gap-2 text-sm sm:text-base">
                       <Shield className="h-4 w-4" />
                       Defenses
                     </h4>
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Order</TableHead>
-                          <TableHead>Attacker</TableHead>
-                          <TableHead>Position</TableHead>
-                          <TableHead>Stars Given</TableHead>
-                          <TableHead>Destruction</TableHead>
-                          <TableHead>Points</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {selectedMember.defenseHistory.map((defense, index) => (
-                          <TableRow key={index}>
-                            <TableCell>{defense.attackOrder}</TableCell>
-                            <TableCell>{defense.attackerName}</TableCell>
-                            <TableCell>#{defense.attackerPosition}</TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-1">
-                                {Array.from({ length: 3 }, (_, i) => (
-                                  <Star
-                                    key={i}
-                                    className={`h-4 w-4 ${
-                                      i < defense.starsGiven
-                                        ? "text-yellow-500 fill-current"
-                                        : "text-gray-300"
-                                    }`}
-                                  />
-                                ))}
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              {defense.destructionPercentage}%
-                            </TableCell>
-                            <TableCell
-                              className={getPointsColor(defense.points)}
-                            >
-                              {defense.points > 0 ? "+" : ""}
-                              {defense.points}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+                    <div className="border rounded-lg overflow-hidden">
+                      <div className="overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead className="text-xs sm:text-sm whitespace-nowrap">Order</TableHead>
+                              <TableHead className="text-xs sm:text-sm min-w-[100px]">Attacker</TableHead>
+                              <TableHead className="text-xs sm:text-sm whitespace-nowrap">Position</TableHead>
+                              <TableHead className="text-xs sm:text-sm whitespace-nowrap">Stars Given</TableHead>
+                              <TableHead className="text-xs sm:text-sm whitespace-nowrap hidden sm:table-cell">Destruction</TableHead>
+                              <TableHead className="text-xs sm:text-sm whitespace-nowrap">Points</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {selectedMember.defenseHistory.map((defense, index) => (
+                              <TableRow key={index}>
+                                <TableCell className="text-xs sm:text-sm">{defense.attackOrder}</TableCell>
+                                <TableCell className="text-xs sm:text-sm">
+                                  <div className="truncate max-w-[100px] sm:max-w-none" title={defense.attackerName}>
+                                    {defense.attackerName}
+                                  </div>
+                                </TableCell>
+                                <TableCell className="text-xs sm:text-sm">#{defense.attackerPosition}</TableCell>
+                                <TableCell>
+                                  <div className="flex items-center gap-0.5 sm:gap-1">
+                                    {Array.from({ length: 3 }, (_, i) => (
+                                      <Star
+                                        key={i}
+                                        className={`h-3 w-3 sm:h-4 sm:w-4 ${
+                                          i < defense.starsGiven
+                                            ? "text-yellow-500 fill-current"
+                                            : "text-gray-300"
+                                        }`}
+                                      />
+                                    ))}
+                                  </div>
+                                </TableCell>
+                                <TableCell className="text-xs sm:text-sm hidden sm:table-cell">
+                                  {defense.destructionPercentage}%
+                                </TableCell>
+                                <TableCell
+                                  className={`text-xs sm:text-sm font-medium ${getPointsColor(defense.points)}`}
+                                >
+                                  {defense.points > 0 ? "+" : ""}
+                                  {defense.points}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </div>
                   </div>
                 )}
 
                 {selectedMember.attackHistory.length === 0 &&
                   selectedMember.defenseHistory.length === 0 && (
-                    <div className="text-center py-8 text-muted-foreground">
-                      No attacks or defenses recorded for this member yet.
+                    <div className="text-center py-6 sm:py-8 text-muted-foreground">
+                      <div className="text-sm sm:text-base">
+                        No attacks or defenses recorded for this member yet.
+                      </div>
                     </div>
                   )}
               </div>

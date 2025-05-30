@@ -157,25 +157,26 @@ export default function WarPage() {
             onValueChange={setActiveTab}
             className="space-y-4"
           >
-            <TabsList>
+            {" "}
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="overview" className="flex items-center gap-1">
                 <Trophy className="h-4 w-4" />
-                <span className="sm:inline">Overview</span>
+                <span className="hidden sm:inline">Overview</span>
               </TabsTrigger>
               <TabsTrigger value="attacks" className="flex items-center gap-1">
                 <Swords className="h-4 w-4" />
-                <span className="sm:inline">Attacks</span>
+                <span className="hidden sm:inline">Attacks</span>
               </TabsTrigger>
               <TabsTrigger
                 value="analytics"
                 className="flex items-center gap-1"
               >
                 <AlertCircle className="h-4 w-4" />
-                <span className="sm:inline">Analytics</span>
+                <span className="hidden sm:inline">Analytics</span>
               </TabsTrigger>
               <TabsTrigger value="points" className="flex items-center gap-1">
                 <Target className="h-4 w-4" />
-                <span className="sm:inline">Points</span>
+                <span className="hidden sm:inline">Points</span>
               </TabsTrigger>
             </TabsList>
             <TabsContent value="overview" className="space-y-6">
