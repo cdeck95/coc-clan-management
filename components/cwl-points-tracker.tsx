@@ -200,11 +200,17 @@ export function CWLPointsTracker({
                     2 Star Attack
                   </span>
                   <Badge variant="secondary">+1 point</Badge>
-                </div>
+                </div>{" "}
                 <div className="flex justify-between">
                   <span className="flex items-center gap-1">
                     <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
                     1 Star Attack
+                  </span>
+                  <Badge variant="destructive">-1 points</Badge>
+                </div>
+                <div className="flex justify-between">
+                  <span className="flex items-center gap-1">
+                    <Star className="h-3 w-3 text-gray-300" />0 Star Attack
                   </span>
                   <Badge variant="destructive">-3 points</Badge>
                 </div>
@@ -233,6 +239,26 @@ export function CWLPointsTracker({
                   <Badge variant="outline">0 points</Badge>
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* Perfect CWL Bonus */}
+          <div className="mt-4 p-4 bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-950 dark:to-amber-950 rounded-lg border border-yellow-200 dark:border-yellow-800">
+            <h4 className="font-medium mb-2 flex items-center gap-2 text-yellow-700 dark:text-yellow-400">
+              <Trophy className="h-4 w-4" />
+              Perfect CWL Bonus
+            </h4>
+            <div className="text-sm text-yellow-600 dark:text-yellow-300">
+              <div className="flex justify-between items-center">
+                <span>3 stars in every attack throughout the season</span>
+                <Badge className="bg-yellow-600 hover:bg-yellow-700">
+                  +3 bonus points
+                </Badge>
+              </div>
+              <p className="text-xs mt-1 opacity-75">
+                Members who achieve 3 stars in ALL their attacks during CWL
+                receive this bonus
+              </p>
             </div>
           </div>
         </CardContent>
