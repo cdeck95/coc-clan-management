@@ -92,7 +92,6 @@ export function calculateCWLSeasonPoints(
   if (!ourClan) {
     throw new Error("Clan not found in league group");
   }
-
   // Initialize member points for all clan members
   ourClan.members.forEach((member) => {
     memberPointsMap.set(member.tag, {
@@ -100,6 +99,7 @@ export function calculateCWLSeasonPoints(
       memberName: member.name,
       attackPoints: 0,
       defensePoints: 0,
+      bonusPoints: 0,
       totalPoints: 0,
       attacksUsed: 0,
       timesDefended: 0,
@@ -146,7 +146,10 @@ export function calculateCWLSeasonPoints(
                 member.attackPoints += attackResult.points;
                 member.attacksUsed += 1;
                 member.attackHistory.push(attackResult);
-                member.totalPoints = member.attackPoints + member.defensePoints;
+                member.totalPoints =
+                  member.attackPoints +
+                  member.defensePoints +
+                  member.bonusPoints;
               }
             }
           }
@@ -176,7 +179,9 @@ export function calculateCWLSeasonPoints(
                 defender.timesDefended += 1;
                 defender.defenseHistory.push(defenseResult);
                 defender.totalPoints =
-                  defender.attackPoints + defender.defensePoints;
+                  defender.attackPoints +
+                  defender.defensePoints +
+                  defender.bonusPoints;
               }
             }
           }
@@ -186,6 +191,23 @@ export function calculateCWLSeasonPoints(
       completedWarDays++;
     });
   });
+
+  // Calculate Perfect CWL Bonus (3 points for perfect performance)
+  // Award bonus to members who achieved 3 stars in every single attack
+  memberPointsMap.forEach((member) => {
+    if (member.attacksUsed > 0) {
+      const allPerfectAttacks = member.attackHistory.every(
+        (attack) => attack.stars === 3
+      );
+
+      if (allPerfectAttacks) {
+        member.bonusPoints += 3;
+        member.totalPoints =
+          member.attackPoints + member.defensePoints + member.bonusPoints;
+      }
+    }
+  });
+
   return {
     season: leagueGroup.season,
     clanTag,
@@ -231,6 +253,7 @@ export function exportPointsToCSV(seasonPoints: CWLSeasonPoints): string {
     "Member Tag",
     "Attack Points",
     "Defense Points",
+    "Bonus Points",
     "Total Points",
     "Attacks Used",
     "Times Defended",
@@ -246,11 +269,13 @@ export function exportPointsToCSV(seasonPoints: CWLSeasonPoints): string {
       member.memberTag,
       member.attackPoints,
       member.defensePoints,
+      member.bonusPoints,
       member.totalPoints,
       member.attacksUsed,
       member.timesDefended,
       summary.avgAttackPoints,
       summary.avgDefensePoints,
+      summary.participationRate,
     ];
   });
 

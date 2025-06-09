@@ -204,6 +204,7 @@ export interface CWLMemberPoints {
   memberName: string;
   attackPoints: number;
   defensePoints: number;
+  bonusPoints: number; // Bonus points for perfect CWL performance
   totalPoints: number;
   attacksUsed: number;
   timesDefended: number;
