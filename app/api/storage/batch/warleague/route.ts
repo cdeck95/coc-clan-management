@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ClanWarLeagueWar } from "@/types/clash";
-import { getClanWarLeagueGroup, getClanWarLeagueWar } from "@/lib/clan-api";
+import { ClanWarLeagueWar, ClanWarLeagueRound } from "@/types/clash";
+import { getWarLeagueGroup, getWarLeagueWar } from "@/lib/api";
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,10 +14,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Clean clan tag by removing # if present
-    const cleanClanTag = clanTag.replace("#", "");
-
-    // Fetch CWL group data
-    const leagueGroup = await getClanWarLeagueGroup(cleanClanTag);
+    const cleanClanTag = clanTag.replace("#", ""); // Fetch CWL group data
+    const leagueGroup = await getWarLeagueGroup(cleanClanTag);
 
     if (
       !leagueGroup ||
@@ -31,11 +29,9 @@ export async function POST(request: NextRequest) {
     // If fetchWars is false, just return the group
     if (!fetchWars) {
       return NextResponse.json({ group: leagueGroup, wars: {} });
-    }
-
-    // Collect all war tags
+    } // Collect all war tags
     const allWarTags: string[] = [];
-    leagueGroup.rounds.forEach((round) => {
+    leagueGroup.rounds.forEach((round: ClanWarLeagueRound) => {
       if (round && round.warTags) {
         allWarTags.push(...round.warTags.filter(Boolean));
       }
@@ -45,7 +41,7 @@ export async function POST(request: NextRequest) {
     const warData: Record<string, ClanWarLeagueWar> = {};
 
     if (allWarTags.length > 0) {
-      const warPromises = allWarTags.map((tag) => getClanWarLeagueWar(tag));
+      const warPromises = allWarTags.map((tag) => getWarLeagueWar(tag));
       const wars = await Promise.all(warPromises);
 
       // Create a map of war tag to war data
