@@ -934,9 +934,21 @@ export async function fetchMembersData(
   }
 }
 
-export async function fetchWarLeagueData(clanTag: string, fetchWars = true) {
+export async function fetchWarLeagueData(
+  clanTag: string,
+  fetchWars = true,
+  retryCount = 0
+) {
+  const maxRetries = 2;
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+    console.log(
+      `Fetching CWL data for ${clanTag}, attempt ${retryCount + 1}/${
+        maxRetries + 1
+      }`
+    );
+
     const url = new URL("/api/storage/batch/warleague", baseUrl);
     const response = await fetch(url.toString(), {
       method: "POST",
@@ -946,16 +958,57 @@ export async function fetchWarLeagueData(clanTag: string, fetchWars = true) {
       body: JSON.stringify({
         clanTag,
         fetchWars,
+        timeout: 12000, // 12 second timeout for serverless functions
       }),
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch war league data: ${response.status}`);
+      throw new Error(
+        `Failed to fetch war league data: ${response.status} ${response.statusText}`
+      );
     }
 
-    return await response.json();
+    const result = await response.json();
+
+    // Log stats if available
+    if (result.stats) {
+      console.log(`CWL fetch stats:`, result.stats);
+    }
+
+    // Log warning if partial data
+    if (result.warning) {
+      console.warn(`CWL data warning: ${result.warning}`);
+    }
+
+    return result;
   } catch (error) {
-    console.error("Error fetching war league data:", error);
+    console.error(
+      `Error fetching war league data (attempt ${retryCount + 1}):`,
+      error
+    );
+
+    // Retry logic for failed requests
+    if (retryCount < maxRetries) {
+      console.log(`Retrying CWL data fetch in ${(retryCount + 1) * 1000}ms...`);
+      await new Promise((resolve) =>
+        setTimeout(resolve, (retryCount + 1) * 1000)
+      );
+      return fetchWarLeagueData(clanTag, fetchWars, retryCount + 1);
+    }
+
+    // If all retries failed, try to return just the group data without wars
+    if (fetchWars && retryCount >= maxRetries) {
+      console.warn(
+        "All CWL data fetch attempts failed, trying to get group data only..."
+      );
+      try {
+        return await fetchWarLeagueData(clanTag, false, 0);
+      } catch (groupError) {
+        console.error("Failed to fetch even basic CWL group data:", groupError);
+        throw error; // Throw original error
+      }
+    }
+
     throw error;
   }
 }
