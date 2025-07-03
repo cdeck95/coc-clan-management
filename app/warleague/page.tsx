@@ -505,9 +505,9 @@ export default function WarLeaguePage() {
           </AlertDescription>
         </Alert>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 md:gap-6">
           {/* Left sidebar - better responsive handling */}
-          <div className="lg:col-span-1 flex flex-col gap-4">
+          <div className="lg:col-span-2 flex flex-col gap-4">
             {/* CWL Overview Card */}
             <Card>
               <CardHeader className="p-4">
