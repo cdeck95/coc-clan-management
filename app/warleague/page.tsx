@@ -470,7 +470,7 @@ export default function WarLeaguePage() {
 
   // Rest of the component remains the same
   return (
-    <div className="container mx-auto py-4 sm:py-6 space-y-4 sm:space-y-6 px-2 sm:px-4">
+    <div className="mx-auto py-4 sm:py-6 space-y-4 sm:space-y-6 px-2 sm:px-4">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0">
         <h1 className="text-2xl sm:text-3xl font-bold">Clan War League</h1>
         <Button
@@ -505,9 +505,9 @@ export default function WarLeaguePage() {
           </AlertDescription>
         </Alert>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-6">
           {/* Left sidebar - better responsive handling */}
-          <div className="md:col-span-1 flex flex-col gap-4">
+          <div className="lg:col-span-1 flex flex-col gap-4">
             {/* CWL Overview Card */}
             <Card>
               <CardHeader className="p-4">
@@ -912,7 +912,7 @@ export default function WarLeaguePage() {
           </div>
 
           {/* Selected War Display - more responsive */}
-          <div className="md:col-span-2">
+          <div className="lg:col-span-3">
             {selectedWar ? (
               <>
                 {/* War Overview - more responsive */}

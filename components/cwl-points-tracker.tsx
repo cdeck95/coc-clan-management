@@ -306,6 +306,7 @@ export function CWLPointsTracker({
                     <TableHead className="text-center">Total</TableHead>
                     <TableHead className="text-center">Attack</TableHead>
                     <TableHead className="text-center">Defense</TableHead>
+                    <TableHead className="text-center">Bonus</TableHead>
                     <TableHead className="text-center">Participation</TableHead>
                   </TableRow>
                 </TableHeader>{" "}
@@ -352,6 +353,25 @@ export function CWLPointsTracker({
                             {getPointsIcon(member.defensePoints)}
                             <span>{member.defensePoints}</span>
                           </div>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {member.bonusPoints > 0 ? (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <Badge className="bg-yellow-600 hover:bg-yellow-700">
+                                    <Trophy className="h-3 w-3 mr-1" />
+                                    {member.bonusPoints}
+                                  </Badge>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  Perfect CWL Bonus - 3 stars in every attack
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
                         </TableCell>
                         <TableCell className="text-center">
                           <TooltipProvider>
@@ -401,6 +421,9 @@ export function CWLPointsTracker({
                       <TableHead className="text-center">
                         Defense Points
                       </TableHead>
+                      <TableHead className="text-center">
+                        Bonus Points
+                      </TableHead>
                       <TableHead className="text-center">Avg Attack</TableHead>
                       <TableHead className="text-center">Avg Defense</TableHead>
                       <TableHead className="text-center">
@@ -445,6 +468,16 @@ export function CWLPointsTracker({
                             {member.defensePoints}
                           </TableCell>
                           <TableCell className="text-center">
+                            {member.bonusPoints > 0 ? (
+                              <Badge className="bg-yellow-600 hover:bg-yellow-700">
+                                <Trophy className="h-3 w-3 mr-1" />
+                                {member.bonusPoints}
+                              </Badge>
+                            ) : (
+                              <span className="text-muted-foreground">-</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-center">
                             {summary.avgAttackPoints}
                           </TableCell>
                           <TableCell className="text-center">
@@ -479,7 +512,7 @@ export function CWLPointsTracker({
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                     <div className="text-center">
                       <div className="text-2xl font-bold">
                         {selectedMemberData.totalPoints}
@@ -502,6 +535,21 @@ export function CWLPointsTracker({
                       </div>
                       <div className="text-sm text-muted-foreground">
                         Defense Points
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold flex items-center justify-center gap-1">
+                        {selectedMemberData.bonusPoints > 0 ? (
+                          <>
+                            <Trophy className="h-5 w-5 text-yellow-500" />
+                            {selectedMemberData.bonusPoints}
+                          </>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        Bonus Points
                       </div>
                     </div>
                     <div className="text-center">
