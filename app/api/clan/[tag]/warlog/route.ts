@@ -20,7 +20,7 @@ export async function GET(
       `/clans/${encodeURIComponent(clanTag)}/warlog`
     );
 
-    const warLogEntries = data.items as WarLogEntry[];
+    const warLogEntries = (data?.items ?? []) as WarLogEntry[];
     // filter out if attacks per member is 1, that is not a normal war
     const filteredEntries = warLogEntries.filter(
       (entry) => entry.attacksPerMember > 1

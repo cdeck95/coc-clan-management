@@ -19,7 +19,8 @@ import {
 export function processWarForPoints(
   war: ClanWarLeagueWar,
   clanTag: string,
-  round: number
+  round: number,
+  warTag: string,
 ): { attackResults: CWLAttackResult[]; defenseResults: CWLDefenseResult[] } {
   const attackResults: CWLAttackResult[] = [];
   const defenseResults: CWLDefenseResult[] = [];
@@ -33,12 +34,12 @@ export function processWarForPoints(
       member.attacks.forEach((attack: WarAttack) => {
         const defender = findMemberByTag(
           opponentClan.members,
-          attack.defenderTag
+          attack.defenderTag,
         );
         const points = calculateAttackPoints(attack.stars);
 
         attackResults.push({
-          warTag: war.clan.tag + "_vs_" + war.opponent.tag, // Generate a unique war identifier
+          warTag,
           round,
           defenderTag: attack.defenderTag,
           defenderName: defender?.name || "Unknown",
@@ -59,7 +60,7 @@ export function processWarForPoints(
           const points = calculateDefensePoints(attack.stars);
 
           defenseResults.push({
-            warTag: war.clan.tag + "_vs_" + war.opponent.tag,
+            warTag,
             round,
             attackerTag: member.tag,
             attackerName: member.name,
@@ -82,7 +83,7 @@ export function processWarForPoints(
 export function calculateCWLSeasonPoints(
   leagueGroup: ClanWarLeagueGroup,
   allWars: Record<string, ClanWarLeagueWar>,
-  clanTag: string
+  clanTag: string,
 ): CWLSeasonPoints {
   const memberPointsMap = new Map<string, CWLMemberPoints>();
   let completedWarDays = 0;
@@ -123,7 +124,8 @@ export function calculateCWLSeasonPoints(
       const { attackResults, defenseResults } = processWarForPoints(
         war,
         clanTag,
-        roundIndex + 1
+        roundIndex + 1,
+        warTag,
       );
 
       // Process attack results - find which member made each attack
@@ -137,7 +139,7 @@ export function calculateCWLSeasonPoints(
                 attack.defenderTag === attackResult.defenderTag &&
                 attack.stars === attackResult.stars &&
                 attack.destructionPercentage ===
-                  attackResult.destructionPercentage
+                  attackResult.destructionPercentage,
             );
 
             if (matchingAttack) {
@@ -169,7 +171,7 @@ export function calculateCWLSeasonPoints(
                 attack.defenderTag &&
                 attack.stars === defenseResult.starsGiven &&
                 attack.destructionPercentage ===
-                  defenseResult.destructionPercentage
+                  defenseResult.destructionPercentage,
             );
 
             if (matchingAttack) {
@@ -197,7 +199,7 @@ export function calculateCWLSeasonPoints(
   memberPointsMap.forEach((member) => {
     if (member.attacksUsed > 0) {
       const allPerfectAttacks = member.attackHistory.every(
-        (attack) => attack.stars === 3
+        (attack) => attack.stars === 3,
       );
 
       if (allPerfectAttacks) {
@@ -213,7 +215,7 @@ export function calculateCWLSeasonPoints(
     clanTag,
     lastUpdated: new Date().toISOString(),
     memberPoints: Array.from(memberPointsMap.values()).sort(
-      (a, b) => b.totalPoints - a.totalPoints
+      (a, b) => b.totalPoints - a.totalPoints,
     ),
     totalWarDays: leagueGroup.rounds.length,
     completedWarDays: Math.min(completedWarDays, leagueGroup.rounds.length), // Ensure completed rounds do not exceed total rounds
@@ -225,7 +227,7 @@ export function calculateCWLSeasonPoints(
  */
 export function getMemberPointsSummary(
   memberPoints: CWLMemberPoints,
-  totalRounds: number
+  totalRounds: number,
 ) {
   const avgAttackPoints =
     memberPoints.attacksUsed > 0

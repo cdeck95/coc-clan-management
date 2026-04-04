@@ -21,9 +21,11 @@ export default async function Dashboard() {
 
   // Calculate win rate safely
   const winRate =
-    clanData.warWins + clanData.warLosses > 0
+    clanData.warWins + clanData.warLosses + clanData.warTies > 0
       ? Math.round(
-          (clanData.warWins / (clanData.warWins + clanData.warLosses)) * 100
+          (clanData.warWins /
+            (clanData.warWins + clanData.warLosses + clanData.warTies)) *
+            100,
         )
       : 0;
 
@@ -85,7 +87,8 @@ export default async function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {clanData.warWins}/{clanData.warWins + clanData.warLosses}
+              {clanData.warWins}/
+              {clanData.warWins + clanData.warLosses + clanData.warTies}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               Win Rate: {winRate}%
