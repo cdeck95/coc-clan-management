@@ -101,34 +101,6 @@ export default function WarLeaguePage() {
       .filter((item): item is ClanWarLeagueWarItem => item !== null);
   };
 
-  // Calculate current round index based on war status
-  const getCurrentRoundIndex = () => {
-    if (!leagueGroup || !leagueGroup.rounds) return 0;
-
-    // First look for active wars (in preparation or battle day)
-    for (let i = 0; i < leagueGroup.rounds.length; i++) {
-      const roundWars = getClanWarsForRound(i);
-      const hasActiveWar = roundWars.some(
-        (item) =>
-          item?.war.state === "preparation" || item?.war.state === "inWar"
-      );
-
-      if (hasActiveWar) return i;
-    }
-
-    // If no active wars found, check if any wars are not ended
-    for (let i = 0; i < leagueGroup.rounds.length; i++) {
-      const roundWars = getClanWarsForRound(i);
-      const hasUnendedWar = roundWars.some(
-        (item) => item?.war.state !== "warEnded"
-      );
-      if (hasUnendedWar) return i;
-    }
-
-    // Default to the last round if all are ended
-    return leagueGroup.rounds.length - 1;
-  };
-
   // Calculate group standings with correct star calculation
   const calculateGroupStandings = () => {
     if (!leagueGroup || !leagueWars) return [];
@@ -163,9 +135,6 @@ export default function WarLeaguePage() {
         totalAttacks: 0,
       };
     });
-
-    console.log("clanStats", clanStats);
-    console.log("leagueGroup", leagueGroup);
 
     // Process all wars
     Object.values(leagueWars).forEach((war) => {
@@ -287,9 +256,7 @@ export default function WarLeaguePage() {
   // Update time remaining for active wars
   useEffect(() => {
     const updateTimeRemaining = () => {
-      console.log("updating time remaining for war", selectedWar);
       if (selectedWar && selectedWar.state === "inWar" && selectedWar.endTime) {
-        console.log("in war, updating time remaining");
         setTimeRemaining(calculateTimeRemaining(selectedWar.endTime));
       } else if (selectedRound >= 0 && leagueGroup?.rounds) {
         const clanWars = getClanWarsForRound(selectedRound);
@@ -309,10 +276,14 @@ export default function WarLeaguePage() {
     const interval = setInterval(updateTimeRemaining, 1000);
 
     return () => clearInterval(interval);
+    // getClanWarsForRound reads leagueGroup and leagueWars which are already in deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [leagueWars, selectedRound, leagueGroup, selectedWar]);
 
   // Fetch CWL data using our new batch endpoint
   useEffect(() => {
+    let cancelled = false;
+
     async function fetchData() {
       try {
         setLoading(true);
@@ -321,30 +292,58 @@ export default function WarLeaguePage() {
         // Use our batch endpoint to fetch all data at once
         const { group, wars } = await fetchWarLeagueData(clanTag);
 
+        if (cancelled) return;
+
         setLeagueGroup(group);
         setLeagueWars(wars || {});
 
         if (group && group.rounds && group.rounds.length > 0) {
-          // Auto-select current round
-          const currentRound = getCurrentRoundIndex();
+          const freshWars: Record<string, ClanWarLeagueWar> = wars || {};
+
+          // Compute current round from fresh data (state hasn't updated yet)
+          const computeCurrentRound = () => {
+            for (let i = 0; i < group.rounds.length; i++) {
+              const tags = group.rounds[i].warTags || [];
+              if (tags.some((t: string) => {
+                const w = freshWars[t];
+                return w && (w.state === "preparation" || w.state === "inWar");
+              })) return i;
+            }
+            for (let i = 0; i < group.rounds.length; i++) {
+              const tags = group.rounds[i].warTags || [];
+              if (tags.some((t: string) => {
+                const w = freshWars[t];
+                return w && w.state !== "warEnded";
+              })) return i;
+            }
+            return group.rounds.length - 1;
+          };
+
+          const currentRound = computeCurrentRound();
           setSelectedRound(currentRound);
 
-          // Find our war in the current round
-          const roundWars = getClanWarsForRound(currentRound);
-          const ourWar = roundWars.find((item) => item?.isClanInWar);
-          if (ourWar) {
-            setSelectedWar(ourWar.war);
+          // Find our war in the current round using fresh data
+          const roundTags = group.rounds[currentRound]?.warTags || [];
+          const ourWarTag = roundTags.find((t: string) => {
+            if (!t || t === "#0") return false;
+            const w = freshWars[t];
+            return w && (w.clan.tag === clanTag || w.opponent.tag === clanTag);
+          });
+          if (ourWarTag && freshWars[ourWarTag]) {
+            setSelectedWar(freshWars[ourWarTag]);
           }
         }
       } catch (err) {
+        if (cancelled) return;
         console.error("Error fetching CWL data:", err);
         setError("Failed to load Clan War League data.");
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
 
     fetchData();
+    return () => { cancelled = true; };
   }, [clanTag]);
 
   // Handle back to regular war

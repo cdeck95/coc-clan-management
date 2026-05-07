@@ -208,6 +208,9 @@ export interface CWLMemberPoints {
   defensePoints: number;
   bonusPoints: number; // Bonus points for perfect CWL performance
   totalPoints: number;
+  avgPoints: number; // totalPoints / daysParticipated (primary ranking metric)
+  daysParticipated: number; // Number of completed war days this member was in the roster
+  isEligible: boolean; // true if member meets minimum participation threshold
   attacksUsed: number;
   timesDefended: number;
   attackHistory: CWLAttackResult[];
@@ -243,6 +246,7 @@ export interface CWLSeasonPoints {
   memberPoints: CWLMemberPoints[];
   totalWarDays: number;
   completedWarDays: number;
+  minDaysRequired: number;
 }
 
 // War-related types
