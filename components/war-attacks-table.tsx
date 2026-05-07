@@ -16,26 +16,12 @@ export function WarAttacksTable({ warData }: WarAttacksTableProps) {
     const processedClanMembers = clan.members.map((member) => ({
       ...member,
       isOurClan: true,
-      attacks: member.attacks?.map((attack) => ({
-        ...attack,
-        order:
-          typeof attack.order === "number"
-            ? String(attack.order)
-            : attack.order,
-      })),
     }));
 
     // Process opponent members
     const processedOpponentMembers = opponent.members.map((member) => ({
       ...member,
       isOurClan: false,
-      attacks: member.attacks?.map((attack) => ({
-        ...attack,
-        order:
-          typeof attack.order === "number"
-            ? String(attack.order)
-            : attack.order,
-      })),
     }));
 
     // Combine and sort all members

@@ -27,7 +27,7 @@ interface WarMember {
     defenderTag: string;
     stars: number;
     destructionPercentage: number;
-    order: string; // Ensuring this is typed as string to match the ClanWar type
+    order: number;
   }[];
   isOurClan: boolean;
 }
@@ -115,7 +115,7 @@ const isWarEndingSoon = (endTime?: string): boolean => {
     (endTimeDate.getTime() - now.getTime()) / (1000 * 60 * 60);
 
   // For debugging
-  if (process.env.NODE_ENV === 'development') {
+  if (process.env.NODE_ENV === "development") {
     console.debug("War end time:", endTime);
     console.debug("Parsed end time:", endTimeDate.toISOString());
     console.debug("Current time:", now.toISOString());
@@ -181,7 +181,7 @@ export function WarAttacksTableContent({
               className={cn(
                 member.isOurClan ? "bg-primary-50 dark:bg-primary-950/10" : "",
                 highlightMissing &&
-                  "border-l-4 border-l-yellow-500 bg-yellow-50/50 dark:bg-yellow-900/10"
+                  "border-l-4 border-l-yellow-500 bg-yellow-50/50 dark:bg-yellow-900/10",
               )}
             >
               <TableCell className="text-center font-medium">
@@ -310,7 +310,7 @@ export function WarAttacksTableContent({
                           "text-sm text-muted-foreground p-2 rounded-md border",
                           highlightMissing
                             ? "border-yellow-300 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400"
-                            : "border-muted"
+                            : "border-muted",
                         )}
                       >
                         {attacksMissing === 1
@@ -329,7 +329,7 @@ export function WarAttacksTableContent({
                         "text-sm text-muted-foreground",
                         highlightMissing
                           ? "text-yellow-700 dark:text-yellow-400 font-medium"
-                          : ""
+                          : "",
                       )}
                     >
                       No attacks yet

@@ -67,7 +67,7 @@ export interface ClanMember {
     };
   };
   trophies: number;
-  versusTrophies: number;
+  builderBaseTrophies: number;
   clanRank: number;
   previousClanRank: number;
   donations: number;
@@ -109,12 +109,12 @@ export interface WarClan {
 export interface CurrentWar {
   state: string;
   teamSize: number;
+  attacksPerMember: number;
   preparationStartTime: string;
   startTime: string;
   endTime: string;
   clan: WarClan;
   opponent: WarClan;
-  // Remove attacksPerMember as it's not part of the API response
 }
 
 export interface MemberNote {
@@ -138,6 +138,7 @@ export interface AttackEfficiency {
   totalAttacks: number;
   totalStars: number;
   totalDestruction: number;
+  totalThreeStarAttacks: number;
   averageStars: number;
   averageDestruction: number;
   threeStarRate: number;
@@ -153,6 +154,7 @@ export interface BannedMember {
 }
 
 export interface ClanWarLeagueGroup {
+  tag: string;
   state: string;
   season: string;
   clans: ClanWarLeagueClan[];
@@ -189,13 +191,13 @@ export interface ClanWarLeagueRanking {
 export interface ClanWarLeagueWar {
   state: string;
   teamSize: number;
+  attacksPerMember: number;
   preparationStartTime: string;
   startTime: string;
   endTime: string;
   clan: WarClan;
   opponent: WarClan;
   warLeague?: WarLeague;
-  // Remove attacksPerMember as it's not part of the API response
 }
 
 // CWL Points Tracking Interfaces
@@ -251,6 +253,7 @@ export interface CWLSeasonPoints {
 export interface ClanWar {
   state: "notInWar" | "preparation" | "inWar" | "warEnded";
   teamSize: number;
+  attacksPerMember: number;
   preparationStartTime: string;
   startTime: string;
   endTime: string;
@@ -362,7 +365,7 @@ export interface Member {
     };
   };
   trophies: number;
-  versusTrophies?: number;
+  builderBaseTrophies?: number;
   clanRank: number;
   previousClanRank: number;
   donations: number;

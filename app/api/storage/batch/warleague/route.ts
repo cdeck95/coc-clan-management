@@ -1,63 +1,78 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ClanWarLeagueWar, ClanWarLeagueRound } from "@/types/clash";
-import { getWarLeagueGroup, getWarLeagueWar } from "@/lib/api";
+import { fetchFromAPI, getWarLeagueGroup } from "@/lib/api";
+
+// Fetch a single CWL war directly via fetchFromAPI (no internal HTTP hop)
+async function fetchWarDirect(
+  warTag: string,
+  maxRetries: number = 2,
+): Promise<ClanWarLeagueWar | null> {
+  const encodedTag = encodeURIComponent(warTag);
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const war = await fetchFromAPI(`/clanwarleagues/wars/${encodedTag}`);
+      // Validate that the response is actually war data (not mock clan data on error)
+      if (war && war.clan && war.opponent) {
+        return war as ClanWarLeagueWar;
+      }
+      console.warn(
+        `War ${warTag} attempt ${attempt}: response missing clan/opponent fields`,
+      );
+    } catch (error) {
+      console.error(
+        `Failed to fetch war ${warTag} (attempt ${attempt}):`,
+        error,
+      );
+    }
+    if (attempt < maxRetries) {
+      await new Promise((resolve) => setTimeout(resolve, attempt * 300));
+    }
+  }
+  return null;
+}
 
 // Helper function to process wars in smaller batches to avoid timeouts
 async function fetchWarsInBatches(
   warTags: string[],
-  batchSize: number = 5, // Reduced batch size for better reliability
-  delayMs: number = 100 // Small delay between batches to respect rate limits
+  batchSize: number = 5,
+  delayMs: number = 100,
 ): Promise<Record<string, ClanWarLeagueWar>> {
   const warData: Record<string, ClanWarLeagueWar> = {};
   const validTags = warTags.filter((tag) => tag && tag !== "#0");
 
   console.log(
-    `Processing ${validTags.length} war tags in batches of ${batchSize}`
+    `Processing ${validTags.length} war tags in batches of ${batchSize}`,
   );
 
   for (let i = 0; i < validTags.length; i += batchSize) {
     const batch = validTags.slice(i, i + batchSize);
     console.log(
       `Processing batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(
-        validTags.length / batchSize
-      )}: ${batch.length} wars`
+        validTags.length / batchSize,
+      )}: ${batch.length} wars`,
     );
 
     try {
-      // Process current batch in parallel
-      const batchPromises = batch.map(async (tag) => {
-        try {
-          const war = await getWarLeagueWar(tag);
-          return { tag, war };
-        } catch (error) {
-          console.error(`Failed to fetch war ${tag}:`, error);
-          return { tag, war: null };
-        }
-      });
+      const batchResults = await Promise.all(
+        batch.map(async (tag) => ({ tag, war: await fetchWarDirect(tag) })),
+      );
 
-      const batchResults = await Promise.all(batchPromises);
-
-      // Add successful results to warData
       batchResults.forEach(({ tag, war }) => {
         if (war) {
           warData[tag] = war;
         }
       });
 
-      // Add delay between batches (except for the last batch)
       if (i + batchSize < validTags.length) {
         await new Promise((resolve) => setTimeout(resolve, delayMs));
       }
     } catch (error) {
       console.error(`Error processing batch starting at index ${i}:`, error);
-      // Continue with next batch instead of failing completely
     }
   }
 
   console.log(
-    `Successfully fetched ${Object.keys(warData).length}/${
-      validTags.length
-    } wars`
+    `Successfully fetched ${Object.keys(warData).length}/${validTags.length} wars`,
   );
   return warData;
 }
@@ -71,7 +86,7 @@ export async function POST(request: NextRequest) {
     if (!clanTag) {
       return NextResponse.json(
         { error: "Invalid request. Expected clanTag." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -134,7 +149,7 @@ export async function POST(request: NextRequest) {
       console.log(
         `Successfully fetched ${Object.keys(warData).length}/${
           allWarTags.length
-        } wars`
+        } wars`,
       );
     }
 
@@ -152,7 +167,7 @@ export async function POST(request: NextRequest) {
     const processingTime = Date.now() - startTime;
     console.error(
       `Error fetching batch war league data after ${processingTime}ms:`,
-      error
+      error,
     );
 
     return NextResponse.json(
@@ -162,7 +177,7 @@ export async function POST(request: NextRequest) {
         }`,
         processingTime,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

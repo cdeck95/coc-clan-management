@@ -55,7 +55,7 @@ export const MOCK_CLAN_DATA: Clan = {
         },
       },
       trophies: 5500,
-      versusTrophies: 3000,
+      builderBaseTrophies: 3000,
       clanRank: 1,
       previousClanRank: 1,
       donations: 1200,
@@ -78,7 +78,7 @@ export const MOCK_CLAN_DATA: Clan = {
         },
       },
       trophies: 5200,
-      versusTrophies: 2900,
+      builderBaseTrophies: 2900,
       clanRank: 2,
       previousClanRank: 2,
       donations: 1000,
@@ -101,7 +101,7 @@ export const MOCK_CLAN_DATA: Clan = {
         },
       },
       trophies: 4800,
-      versusTrophies: 2800,
+      builderBaseTrophies: 2800,
       clanRank: 3,
       previousClanRank: 3,
       donations: 800,
@@ -124,7 +124,7 @@ export const MOCK_CLAN_DATA: Clan = {
         },
       },
       trophies: 4500,
-      versusTrophies: 2700,
+      builderBaseTrophies: 2700,
       clanRank: 4,
       previousClanRank: 5,
       donations: 200,
@@ -147,7 +147,7 @@ export const MOCK_CLAN_DATA: Clan = {
         },
       },
       trophies: 3800,
-      versusTrophies: 2200,
+      builderBaseTrophies: 2200,
       clanRank: 5,
       previousClanRank: 4,
       donations: 100,
@@ -192,6 +192,7 @@ export const MOCK_CLAN_DATA: Clan = {
 export const MOCK_WAR_DATA: CurrentWar = {
   state: "inWar",
   teamSize: 15,
+  attacksPerMember: 2,
   preparationStartTime: new Date(Date.now() - 86400000).toISOString(), // 24 hours ago
   startTime: new Date(Date.now() - 43200000).toISOString(), // 12 hours ago
   endTime: new Date(Date.now() + 43200000).toISOString(), // 12 hours from now
@@ -401,6 +402,7 @@ export const MOCK_WAR_DATA: CurrentWar = {
 
 // Mock data for CWL group
 export const MOCK_CWL_GROUP_DATA: ClanWarLeagueGroup = {
+  tag: "#GCVL29VJ",
   state: "inWar",
   season: new Date().toISOString().substring(0, 7), // Current year-month
   clans: [

@@ -79,7 +79,7 @@ export async function fetchFromAPI(endpoint: string) {
     console.log("Response from API:", responseJson);
 
     if (!res.ok) {
-      console.error(`API error: ${res.status} - ${await res.text()}`);
+      console.error(`API error: ${res.status}`, responseJson);
 
       // Return mock data if API call fails
       if (endpoint.includes("currentwar")) {
@@ -88,7 +88,7 @@ export async function fetchFromAPI(endpoint: string) {
       return MOCK_CLAN_DATA;
     }
 
-    return await responseJson;
+    return responseJson;
   } catch (error) {
     console.error("Error fetching from Clash API:", error);
 
@@ -110,7 +110,9 @@ export async function getCurrentWarLeague(): Promise<ClanWarLeagueGroup> {
   const encodedTag = encodeTag(CLAN_TAG);
 
   try {
-    const data = await fetchFromAPI(`/clans/${encodedTag}/currentwarleague`);
+    const data = await fetchFromAPI(
+      `/clans/${encodedTag}/currentwar/leaguegroup`,
+    );
     return data;
   } catch (error) {
     console.error("Error fetching CWL data:", error);
@@ -174,7 +176,7 @@ export async function getLeagueInfo(leagueId: number): Promise<League> {
 }
 
 export async function getLeagueSeasons(
-  leagueId: number
+  leagueId: number,
 ): Promise<LeagueSeason[]> {
   try {
     const data = await fetchFromAPI(`/leagues/${leagueId}/seasons`);
@@ -182,7 +184,7 @@ export async function getLeagueSeasons(
   } catch (error) {
     console.error(
       `Error fetching league seasons for league ID ${leagueId}:`,
-      error
+      error,
     );
     return [];
   }
@@ -190,7 +192,7 @@ export async function getLeagueSeasons(
 
 export async function getLeagueSeasonRankings(
   leagueId: number,
-  seasonId: string
+  seasonId: string,
 ): Promise<LeagueSeasonRanking[]> {
   try {
     const data = await fetchFromAPI(`/leagues/${leagueId}/seasons/${seasonId}`);
@@ -198,7 +200,7 @@ export async function getLeagueSeasonRankings(
   } catch (error) {
     console.error(
       `Error fetching league season rankings for league ${leagueId}, season ${seasonId}:`,
-      error
+      error,
     );
     return [];
   }
@@ -251,7 +253,7 @@ export async function saveMemberNote(note: MemberNote): Promise<void> {
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(
-        `Failed to save note: ${errorData.error || response.status}`
+        `Failed to save note: ${errorData.error || response.status}`,
       );
     }
 
@@ -277,7 +279,7 @@ export async function deleteMemberNote(noteId: string): Promise<void> {
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(
-        `Failed to delete note: ${errorData.error || response.status}`
+        `Failed to delete note: ${errorData.error || response.status}`,
       );
     }
 
@@ -289,7 +291,7 @@ export async function deleteMemberNote(noteId: string): Promise<void> {
 }
 
 export async function getMemberNotesByMemberId(
-  memberId: string
+  memberId: string,
 ): Promise<MemberNote[]> {
   try {
     debugLog(`Getting notes for member ${memberId} via API`);
@@ -325,7 +327,7 @@ export async function updateMemberNote(note: MemberNote): Promise<void> {
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
     const url = new URL(
       `/api/storage/notes/${encodeURIComponent(note.memberId)}`,
-      baseUrl
+      baseUrl,
     );
     console.log("Updating note at:", url.toString());
 
@@ -340,7 +342,7 @@ export async function updateMemberNote(note: MemberNote): Promise<void> {
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(
-        `Failed to update note: ${errorData.error || response.status}`
+        `Failed to update note: ${errorData.error || response.status}`,
       );
     }
 
@@ -393,7 +395,7 @@ export async function saveMemberStrike(strike: MemberStrike): Promise<void> {
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(
-        `Failed to save strike: ${errorData.error || response.status}`
+        `Failed to save strike: ${errorData.error || response.status}`,
       );
     }
 
@@ -414,13 +416,13 @@ export async function deleteMemberStrike(strikeId: string): Promise<void> {
       `${baseUrl}/api/storage/strikes?id=${strikeId}`,
       {
         method: "DELETE",
-      }
+      },
     );
 
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(
-        `Failed to delete strike: ${errorData.error || response.status}`
+        `Failed to delete strike: ${errorData.error || response.status}`,
       );
     }
 
@@ -432,7 +434,7 @@ export async function deleteMemberStrike(strikeId: string): Promise<void> {
 }
 
 export async function getMemberStrikesByMemberId(
-  memberId: string
+  memberId: string,
 ): Promise<MemberStrike[]> {
   try {
     debugLog(`Getting strikes for member ${memberId} via API`);
@@ -441,7 +443,7 @@ export async function getMemberStrikesByMemberId(
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
     console.log(
       "Fetching strikes from:",
-      `${baseUrl}/api/storage/strikes/${encodedMemberId}`
+      `${baseUrl}/api/storage/strikes/${encodedMemberId}`,
     );
 
     const url = new URL(`/api/storage/strikes/${encodedMemberId}`, baseUrl);
@@ -471,7 +473,7 @@ export async function updateMemberStrike(strike: MemberStrike): Promise<void> {
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
     const url = new URL(
       `/api/storage/strikes/${encodeURIComponent(strike.memberId)}`,
-      baseUrl
+      baseUrl,
     );
 
     const response = await fetch(url.toString(), {
@@ -485,7 +487,7 @@ export async function updateMemberStrike(strike: MemberStrike): Promise<void> {
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(
-        `Failed to update strike: ${errorData.error || response.status}`
+        `Failed to update strike: ${errorData.error || response.status}`,
       );
     }
 
@@ -500,18 +502,12 @@ export async function updateMemberStrike(strike: MemberStrike): Promise<void> {
 export async function getMemberEfficiencies(): Promise<AttackEfficiency[]> {
   try {
     const objects: { Key?: string }[] = await listObjects(EFFICIENCY_PREFIX);
-    const efficiencies: AttackEfficiency[] = [];
-
-    for (const object of objects) {
-      if (object.Key) {
-        const efficiency = (await getObject(object.Key)) as AttackEfficiency;
-        if (efficiency) {
-          efficiencies.push(efficiency);
-        }
-      }
-    }
-
-    return efficiencies;
+    const efficiencies = await Promise.all(
+      objects
+        .filter((o) => o.Key)
+        .map((o) => getObject(o.Key!) as Promise<AttackEfficiency>),
+    );
+    return efficiencies.filter(Boolean) as AttackEfficiency[];
   } catch (error) {
     console.error("Error getting member efficiencies:", error);
     return [];
@@ -519,7 +515,7 @@ export async function getMemberEfficiencies(): Promise<AttackEfficiency[]> {
 }
 
 export async function saveMemberEfficiency(
-  efficiency: AttackEfficiency
+  efficiency: AttackEfficiency,
 ): Promise<void> {
   try {
     const key = `${EFFICIENCY_PREFIX}${efficiency.memberId}`;
@@ -531,7 +527,7 @@ export async function saveMemberEfficiency(
 }
 
 export async function getMemberEfficiencyById(
-  memberId: string
+  memberId: string,
 ): Promise<AttackEfficiency | null> {
   try {
     const key = `${EFFICIENCY_PREFIX}${memberId}`;
@@ -543,7 +539,7 @@ export async function getMemberEfficiencyById(
 }
 
 export async function updateEfficiencyFromWar(
-  warData: CurrentWar | ClanWarLeagueWar
+  warData: CurrentWar | ClanWarLeagueWar,
 ): Promise<void> {
   try {
     const clan = warData.clan;
@@ -558,6 +554,7 @@ export async function updateEfficiencyFromWar(
           totalAttacks: 0,
           totalStars: 0,
           totalDestruction: 0,
+          totalThreeStarAttacks: 0,
           averageStars: 0,
           averageDestruction: 0,
           threeStarRate: 0,
@@ -568,20 +565,22 @@ export async function updateEfficiencyFromWar(
         const newAttackCount = member.attacks.length;
         const newStars = member.attacks.reduce(
           (sum, attack) => sum + attack.stars,
-          0
+          0,
         );
         const newDestruction = member.attacks.reduce(
           (sum, attack) => sum + attack.destructionPercentage,
-          0
+          0,
         );
-        const threeStarAttacks = member.attacks.filter(
-          (attack) => attack.stars === 3
+        const newThreeStarAttacks = member.attacks.filter(
+          (attack) => attack.stars === 3,
         ).length;
 
         // Recalculate stats
         efficiency.totalAttacks += newAttackCount;
         efficiency.totalStars += newStars;
         efficiency.totalDestruction += newDestruction;
+        efficiency.totalThreeStarAttacks =
+          (efficiency.totalThreeStarAttacks || 0) + newThreeStarAttacks;
         efficiency.averageStars =
           efficiency.totalAttacks > 0
             ? efficiency.totalStars / efficiency.totalAttacks
@@ -592,7 +591,7 @@ export async function updateEfficiencyFromWar(
             : 0;
         efficiency.threeStarRate =
           efficiency.totalAttacks > 0
-            ? (threeStarAttacks / efficiency.totalAttacks) * 100
+            ? (efficiency.totalThreeStarAttacks / efficiency.totalAttacks) * 100
             : 0;
         efficiency.lastUpdated = new Date().toISOString();
 
@@ -650,7 +649,7 @@ export async function saveBannedMember(member: BannedMember): Promise<void> {
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(
-        `Failed to save banned member: ${errorData.error || response.status}`
+        `Failed to save banned member: ${errorData.error || response.status}`,
       );
     }
 
@@ -668,7 +667,7 @@ export async function removeBannedMember(id: string): Promise<void> {
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
     const url = new URL(
       `/api/storage/banned/${encodeURIComponent(id)}`,
-      baseUrl
+      baseUrl,
     );
 
     console.log("Deleting banned member from:", url.toString());
@@ -679,7 +678,7 @@ export async function removeBannedMember(id: string): Promise<void> {
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(
-        `Failed to delete banned member: ${errorData.error || response.status}`
+        `Failed to delete banned member: ${errorData.error || response.status}`,
       );
     }
 
@@ -691,7 +690,7 @@ export async function removeBannedMember(id: string): Promise<void> {
 }
 
 export async function getBannedMemberById(
-  id: string
+  id: string,
 ): Promise<BannedMember | null> {
   try {
     debugLog(`Getting banned member ${id} via API`);
@@ -699,7 +698,7 @@ export async function getBannedMemberById(
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
     const url = new URL(
       `/api/storage/banned/${encodeURIComponent(id)}`,
-      baseUrl
+      baseUrl,
     );
 
     console.log("Fetching banned member from:", url.toString());
@@ -730,7 +729,7 @@ export async function updateBannedMember(member: BannedMember): Promise<void> {
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
     const url = new URL(
       `/api/storage/banned/${encodeURIComponent(member.id)}`,
-      baseUrl
+      baseUrl,
     );
 
     console.log("Updating banned member at:", url.toString());
@@ -745,7 +744,7 @@ export async function updateBannedMember(member: BannedMember): Promise<void> {
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(
-        `Failed to update banned member: ${errorData.error || response.status}`
+        `Failed to update banned member: ${errorData.error || response.status}`,
       );
     }
 
@@ -757,7 +756,7 @@ export async function updateBannedMember(member: BannedMember): Promise<void> {
 }
 
 export async function isMemberBanned(
-  tag: string
+  tag: string,
 ): Promise<BannedMember | null> {
   try {
     const bannedMembers = await getBannedMembers();
@@ -795,7 +794,7 @@ export async function checkIfMemberIsBanned(memberId: string): Promise<{
 
     // Find the member in the banned list
     const foundMember = bannedMembers.find(
-      (banned) => banned.tag.toLowerCase() === memberId.toLowerCase()
+      (banned) => banned.tag.toLowerCase() === memberId.toLowerCase(),
     );
 
     return {
@@ -840,7 +839,7 @@ export async function getCurrentWar(clanTag: string) {
 }
 
 export async function getWarLeagueGroup(
-  clanTag: string
+  clanTag: string,
 ): Promise<ClanWarLeagueGroup> {
   try {
     // Remove # from the tag if present before encoding
@@ -848,7 +847,7 @@ export async function getWarLeagueGroup(
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
     const url = new URL(
       `/api/clan/${cleanTag}/currentwar/leaguegroup`,
-      baseUrl
+      baseUrl,
     );
     console.log("Fetching current war league group from:", url.toString());
     const response = await fetch(url.toString(), {
@@ -892,7 +891,7 @@ export async function getWarLeagueWar(warTag: string) {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
   const url = new URL(
     `/api/clanwarleagues/wars/${encodeURIComponent(warTag)}`,
-    baseUrl
+    baseUrl,
   );
   console.log("Fetching current war from:", url.toString());
   const response = await fetch(url.toString(), {
@@ -906,7 +905,7 @@ export async function getWarLeagueWar(warTag: string) {
 
 export async function fetchMembersData(
   memberIds: string[],
-  options = { notes: true, strikes: true }
+  options = { notes: true, strikes: true },
 ) {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
@@ -937,7 +936,7 @@ export async function fetchMembersData(
 export async function fetchWarLeagueData(
   clanTag: string,
   fetchWars = true,
-  retryCount = 0
+  retryCount = 0,
 ) {
   const maxRetries = 2;
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
@@ -946,7 +945,7 @@ export async function fetchWarLeagueData(
     console.log(
       `Fetching CWL data for ${clanTag}, attempt ${retryCount + 1}/${
         maxRetries + 1
-      }`
+      }`,
     );
 
     const url = new URL("/api/storage/batch/warleague", baseUrl);
@@ -964,7 +963,7 @@ export async function fetchWarLeagueData(
 
     if (!response.ok) {
       throw new Error(
-        `Failed to fetch war league data: ${response.status} ${response.statusText}`
+        `Failed to fetch war league data: ${response.status} ${response.statusText}`,
       );
     }
 
@@ -984,14 +983,14 @@ export async function fetchWarLeagueData(
   } catch (error) {
     console.error(
       `Error fetching war league data (attempt ${retryCount + 1}):`,
-      error
+      error,
     );
 
     // Retry logic for failed requests
     if (retryCount < maxRetries) {
       console.log(`Retrying CWL data fetch in ${(retryCount + 1) * 1000}ms...`);
       await new Promise((resolve) =>
-        setTimeout(resolve, (retryCount + 1) * 1000)
+        setTimeout(resolve, (retryCount + 1) * 1000),
       );
       return fetchWarLeagueData(clanTag, fetchWars, retryCount + 1);
     }
@@ -999,7 +998,7 @@ export async function fetchWarLeagueData(
     // If all retries failed, try to return just the group data without wars
     if (fetchWars && retryCount >= maxRetries) {
       console.warn(
-        "All CWL data fetch attempts failed, trying to get group data only..."
+        "All CWL data fetch attempts failed, trying to get group data only...",
       );
       try {
         return await fetchWarLeagueData(clanTag, false, 0);

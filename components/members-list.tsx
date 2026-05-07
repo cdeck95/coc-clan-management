@@ -50,7 +50,7 @@ interface MembersListProps {
 export function MembersList({ members }: MembersListProps) {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [memberNotes, setMemberNotes] = useState<Record<string, MemberNote[]>>(
-    {}
+    {},
   );
   const [memberStrikes, setMemberStrikes] = useState<
     Record<string, MemberStrike[]>
@@ -129,7 +129,7 @@ export function MembersList({ members }: MembersListProps) {
       // Check each member against the banned list
       memberIds.forEach((memberId) => {
         const bannedMember = bannedMembers.find(
-          (banned) => banned.tag === memberId
+          (banned) => banned.tag === memberId,
         );
         newBannedStatus[memberId] = {
           isBanned: !!bannedMember,
@@ -171,7 +171,7 @@ export function MembersList({ members }: MembersListProps) {
 
       // Check if this member is banned
       const bannedMember = bannedMembers.find(
-        (banned) => banned.tag === memberId
+        (banned) => banned.tag === memberId,
       );
 
       setMemberNotes((prev) => ({ ...prev, [memberId]: notes }));
@@ -268,7 +268,7 @@ export function MembersList({ members }: MembersListProps) {
         {members.map((member, idx) => {
           const donationRatio = getDonationRatio(
             member.donations,
-            member.donationsReceived
+            member.donationsReceived,
           );
           const formattedRatio =
             donationRatio === Infinity ? "∞" : donationRatio.toFixed(1);
@@ -290,12 +290,12 @@ export function MembersList({ members }: MembersListProps) {
                 isBanned
                   ? "border-red-500 bg-red-50/50 dark:bg-red-900/10"
                   : idx === 0
-                  ? "border-amber-500/50 bg-amber-50/50 dark:bg-amber-900/10"
-                  : idx === 1
-                  ? "border-zinc-400/50 bg-zinc-50/50 dark:bg-zinc-800/10"
-                  : idx === 2
-                  ? "border-amber-700/50 bg-amber-100/30 dark:bg-amber-800/10"
-                  : "bg-white dark:bg-gray-800"
+                    ? "border-amber-500/50 bg-amber-50/50 dark:bg-amber-900/10"
+                    : idx === 1
+                      ? "border-zinc-400/50 bg-zinc-50/50 dark:bg-zinc-800/10"
+                      : idx === 2
+                        ? "border-amber-700/50 bg-amber-100/30 dark:bg-amber-800/10"
+                        : "bg-white dark:bg-gray-800",
               )}
             >
               <div className="flex flex-col sm:flex-row items-center gap-3 p-3">
@@ -393,7 +393,7 @@ export function MembersList({ members }: MembersListProps) {
                     <Badge
                       className={cn(
                         "mt-1 flex flex-row justify-center items-center",
-                        getDonationBadgeColor(donationRatio)
+                        getDonationBadgeColor(donationRatio),
                       )}
                     >
                       Ratio: {formattedRatio}
@@ -426,9 +426,9 @@ export function MembersList({ members }: MembersListProps) {
                           </div>
                           <div>Trophies:</div>
                           <div className="font-medium">{member.trophies}</div>
-                          <div>Versus Trophies:</div>
+                          <div>Builder Base Trophies:</div>
                           <div className="font-medium">
-                            {member.versusTrophies}
+                            {member.builderBaseTrophies ?? "—"}
                           </div>
                           <div>League:</div>
                           <div className="font-medium flex items-center gap-1">
@@ -458,7 +458,7 @@ export function MembersList({ members }: MembersListProps) {
                                 <p className="text-xs text-muted-foreground mt-1">
                                   Banned on:{" "}
                                   {new Date(
-                                    bannedInfo.date
+                                    bannedInfo.date,
                                   ).toLocaleDateString()}
                                 </p>
                               </div>
@@ -571,7 +571,7 @@ export function MembersList({ members }: MembersListProps) {
                                           e.stopPropagation();
                                           handleDeleteStrike(
                                             strike.id,
-                                            member.tag
+                                            member.tag,
                                           );
                                         }}
                                       >
@@ -646,7 +646,7 @@ export function MembersList({ members }: MembersListProps) {
       {members.map((member, idx) => {
         const donationRatio = getDonationRatio(
           member.donations,
-          member.donationsReceived
+          member.donationsReceived,
         );
         const formattedRatio =
           donationRatio === Infinity ? "∞" : donationRatio.toFixed(1);
@@ -668,12 +668,12 @@ export function MembersList({ members }: MembersListProps) {
               isBanned
                 ? "border-red-500 bg-red-50/50 dark:bg-red-900/10"
                 : idx === 0
-                ? "border-amber-500/50 bg-amber-50/50 dark:bg-amber-900/10"
-                : idx === 1
-                ? "border-zinc-400/50 bg-zinc-50/50 dark:bg-zinc-800/10"
-                : idx === 2
-                ? "border-amber-700/50 bg-amber-100/30 dark:bg-amber-800/10"
-                : ""
+                  ? "border-amber-500/50 bg-amber-50/50 dark:bg-amber-900/10"
+                  : idx === 1
+                    ? "border-zinc-400/50 bg-zinc-50/50 dark:bg-zinc-800/10"
+                    : idx === 2
+                      ? "border-amber-700/50 bg-amber-100/30 dark:bg-amber-800/10"
+                      : "",
             )}
           >
             <div className="flex items-center gap-3 p-3">
@@ -805,9 +805,9 @@ export function MembersList({ members }: MembersListProps) {
                         </div>
                         <div>Trophies:</div>
                         <div className="font-medium">{member.trophies}</div>
-                        <div>Versus Trophies:</div>
+                        <div>Builder Base Trophies:</div>
                         <div className="font-medium">
-                          {member.versusTrophies}
+                          {member.builderBaseTrophies ?? "—"}
                         </div>
                         <div>League:</div>
                         <div className="font-medium flex items-center gap-1">

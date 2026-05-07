@@ -46,10 +46,13 @@ export function getWarStateColor(state: string) {
  * @returns Number of attacks per member (1 for CWL, 2 for regular war)
  */
 export function getWarAttacksPerMember(
-  war: ClanWar | ClanWarLeagueWar
+  war: ClanWar | ClanWarLeagueWar,
 ): number {
-  // Simple check for CWL wars vs regular wars
-  return war.hasOwnProperty("warLeague") ? 1 : 2;
+  // Use the API-provided value; fall back to 1 for CWL wars, 2 for regular wars
+  if (war.attacksPerMember !== undefined) {
+    return war.attacksPerMember;
+  }
+  return "warLeague" in war ? 1 : 2;
 }
 
 /**
