@@ -244,6 +244,7 @@ export interface CWLSeasonPoints {
   memberPoints: CWLMemberPoints[];
   totalWarDays: number;
   completedWarDays: number;
+  minDaysRequired: number;
 }
 
 // War-related types

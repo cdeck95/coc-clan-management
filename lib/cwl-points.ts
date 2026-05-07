@@ -7,6 +7,8 @@ import {
   CWLDefenseResult,
   CWLSeasonPoints,
 } from "@/types/clash";
+
+export const MIN_DAYS_REQUIRED = 3;
 import {
   calculateAttackPoints,
   calculateDefensePoints,
@@ -221,8 +223,6 @@ export function calculateCWLSeasonPoints(
     }
   });
 
-  const MIN_DAYS_REQUIRED = 3;
-
   // Compute avgPoints and mark eligibility for all members
   const allMembers = Array.from(memberPointsMap.values()).map((member) => ({
     ...member,
@@ -252,6 +252,7 @@ export function calculateCWLSeasonPoints(
     memberPoints: [...eligible, ...ineligible],
     totalWarDays: leagueGroup.rounds.length,
     completedWarDays: Math.min(completedWarDays, leagueGroup.rounds.length), // Ensure completed rounds do not exceed total rounds
+    minDaysRequired: MIN_DAYS_REQUIRED,
   };
 }
 
@@ -260,7 +261,7 @@ export function calculateCWLSeasonPoints(
  */
 export function getMemberPointsSummary(
   memberPoints: CWLMemberPoints,
-  totalRounds: number,
+  completedWarDays: number,
 ) {
   const avgAttackPoints =
     memberPoints.attacksUsed > 0
@@ -275,7 +276,10 @@ export function getMemberPointsSummary(
     ...memberPoints,
     avgAttackPoints: Math.round(avgAttackPoints * 100) / 100,
     avgDefensePoints: Math.round(avgDefensePoints * 100) / 100,
-    participationRate: (memberPoints.daysParticipated / totalRounds) * 100,
+    participationRate:
+      completedWarDays > 0
+        ? (memberPoints.daysParticipated / completedWarDays) * 100
+        : 0,
   };
 }
 
@@ -300,7 +304,10 @@ export function exportPointsToCSV(seasonPoints: CWLSeasonPoints): string {
   ];
 
   const rows = seasonPoints.memberPoints.map((member) => {
-    const summary = getMemberPointsSummary(member, seasonPoints.totalWarDays);
+    const summary = getMemberPointsSummary(
+      member,
+      seasonPoints.completedWarDays,
+    );
     return [
       member.memberName,
       member.memberTag,

@@ -139,13 +139,13 @@ export function CWLPointsTracker({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="text-center">
               <div className="text-2xl font-bold">
-                {seasonPoints.memberPoints.length}
+                {seasonPoints.memberPoints.filter((m) => m.isEligible).length}
               </div>
               <div className="text-sm text-muted-foreground">
                 Qualified Members
               </div>
               <div className="text-xs text-muted-foreground">
-                (≥3 days played)
+                (≥{seasonPoints.minDaysRequired} days played)
               </div>
             </div>
             <div className="text-center">
@@ -159,12 +159,15 @@ export function CWLPointsTracker({
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold">
-                {(
-                  seasonPoints.memberPoints.reduce(
-                    (sum, m) => sum + m.avgPoints,
-                    0,
-                  ) / Math.max(seasonPoints.memberPoints.length, 1)
-                ).toFixed(2)}
+                {(() => {
+                  const eligible = seasonPoints.memberPoints.filter(
+                    (m) => m.isEligible,
+                  );
+                  return (
+                    eligible.reduce((sum, m) => sum + m.avgPoints, 0) /
+                    Math.max(eligible.length, 1)
+                  ).toFixed(2);
+                })()}
               </div>
               <div className="text-sm text-muted-foreground">Avg Pts/Day</div>
             </div>
@@ -297,8 +300,9 @@ export function CWLPointsTracker({
             <CardHeader>
               <CardTitle>Points Leaderboard</CardTitle>
               <CardDescription>
-                Members ranked by average points per day played (min. 3 days
-                required). Ties broken by total points.
+                Members ranked by average points per day played (min.{" "}
+                {seasonPoints.minDaysRequired} days required). Ties broken by
+                total points.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -405,7 +409,7 @@ export function CWLPointsTracker({
                               <TooltipContent>
                                 {member.isEligible
                                   ? `${member.daysParticipated} of ${seasonPoints.totalWarDays} war days played`
-                                  : `Only ${member.daysParticipated} of ${seasonPoints.totalWarDays} days played — minimum 3 required`}
+                                  : `Only ${member.daysParticipated} of ${seasonPoints.totalWarDays} days played — minimum ${seasonPoints.minDaysRequired} required`}
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
@@ -461,7 +465,7 @@ export function CWLPointsTracker({
                     {seasonPoints.memberPoints.map((member) => {
                       const summary = getMemberPointsSummary(
                         member,
-                        seasonPoints.totalWarDays,
+                        seasonPoints.completedWarDays,
                       );
                       return (
                         <TableRow
