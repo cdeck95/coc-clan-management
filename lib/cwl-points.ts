@@ -7,13 +7,13 @@ import {
   CWLDefenseResult,
   CWLSeasonPoints,
 } from "@/types/clash";
-
-export const MIN_DAYS_REQUIRED = 3;
 import {
   calculateAttackPoints,
   calculateDefensePoints,
   findMemberByTag,
 } from "./war-scoring";
+
+export const MIN_DAYS_REQUIRED = 3;
 
 /**
  * Process a single war to extract attack and defense results for points calculation
@@ -40,7 +40,7 @@ export function processWarForPoints(
         const points = calculateAttackPoints(attack.stars);
 
         attackResults.push({
-          warTag,
+          warTag: war.clan.tag + "_vs_" + war.opponent.tag,
           round,
           defenderTag: attack.defenderTag,
           defenderName: defender?.name || "Unknown",
@@ -61,7 +61,7 @@ export function processWarForPoints(
           const points = calculateDefensePoints(attack.stars);
 
           defenseResults.push({
-            warTag,
+            warTag: war.clan.tag + "_vs_" + war.opponent.tag,
             round,
             attackerTag: member.tag,
             attackerName: member.name,
