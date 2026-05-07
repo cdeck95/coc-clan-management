@@ -19,7 +19,7 @@ import {
 export function processWarForPoints(
   war: ClanWarLeagueWar,
   clanTag: string,
-  round: number
+  round: number,
 ): { attackResults: CWLAttackResult[]; defenseResults: CWLDefenseResult[] } {
   const attackResults: CWLAttackResult[] = [];
   const defenseResults: CWLDefenseResult[] = [];
@@ -33,7 +33,7 @@ export function processWarForPoints(
       member.attacks.forEach((attack: WarAttack) => {
         const defender = findMemberByTag(
           opponentClan.members,
-          attack.defenderTag
+          attack.defenderTag,
         );
         const points = calculateAttackPoints(attack.stars);
 
@@ -82,7 +82,7 @@ export function processWarForPoints(
 export function calculateCWLSeasonPoints(
   leagueGroup: ClanWarLeagueGroup,
   allWars: Record<string, ClanWarLeagueWar>,
-  clanTag: string
+  clanTag: string,
 ): CWLSeasonPoints {
   const memberPointsMap = new Map<string, CWLMemberPoints>();
   let completedWarDays = 0;
@@ -101,6 +101,9 @@ export function calculateCWLSeasonPoints(
       defensePoints: 0,
       bonusPoints: 0,
       totalPoints: 0,
+      avgPoints: 0,
+      daysParticipated: 0,
+      isEligible: false,
       attacksUsed: 0,
       timesDefended: 0,
       attackHistory: [],
@@ -120,10 +123,20 @@ export function calculateCWLSeasonPoints(
       const isOurWar = war.clan.tag === clanTag || war.opponent.tag === clanTag;
       if (!isOurWar) return;
 
+      // Track participation — every member in the war roster counts as having played this day
+      const ourClanInWarRoster =
+        war.clan.tag === clanTag ? war.clan : war.opponent;
+      ourClanInWarRoster.members.forEach((warMember) => {
+        const member = memberPointsMap.get(warMember.tag);
+        if (member) {
+          member.daysParticipated += 1;
+        }
+      });
+
       const { attackResults, defenseResults } = processWarForPoints(
         war,
         clanTag,
-        roundIndex + 1
+        roundIndex + 1,
       );
 
       // Process attack results - find which member made each attack
@@ -137,7 +150,7 @@ export function calculateCWLSeasonPoints(
                 attack.defenderTag === attackResult.defenderTag &&
                 attack.stars === attackResult.stars &&
                 attack.destructionPercentage ===
-                  attackResult.destructionPercentage
+                  attackResult.destructionPercentage,
             );
 
             if (matchingAttack) {
@@ -169,7 +182,7 @@ export function calculateCWLSeasonPoints(
                 attack.defenderTag &&
                 attack.stars === defenseResult.starsGiven &&
                 attack.destructionPercentage ===
-                  defenseResult.destructionPercentage
+                  defenseResult.destructionPercentage,
             );
 
             if (matchingAttack) {
@@ -197,7 +210,7 @@ export function calculateCWLSeasonPoints(
   memberPointsMap.forEach((member) => {
     if (member.attacksUsed > 0) {
       const allPerfectAttacks = member.attackHistory.every(
-        (attack) => attack.stars === 3
+        (attack) => attack.stars === 3,
       );
 
       if (allPerfectAttacks) {
@@ -208,13 +221,35 @@ export function calculateCWLSeasonPoints(
     }
   });
 
+  const MIN_DAYS_REQUIRED = 3;
+
+  // Compute avgPoints and mark eligibility for all members
+  const allMembers = Array.from(memberPointsMap.values()).map((member) => ({
+    ...member,
+    isEligible: member.daysParticipated >= MIN_DAYS_REQUIRED,
+    avgPoints:
+      member.daysParticipated > 0
+        ? Math.round((member.totalPoints / member.daysParticipated) * 100) / 100
+        : 0,
+  }));
+
+  // Eligible members sorted by avgPoints desc, then totalPoints; ineligible at the bottom sorted by daysParticipated desc
+  const eligible = allMembers
+    .filter((m) => m.isEligible)
+    .sort((a, b) => {
+      if (b.avgPoints !== a.avgPoints) return b.avgPoints - a.avgPoints;
+      return b.totalPoints - a.totalPoints;
+    });
+
+  const ineligible = allMembers
+    .filter((m) => !m.isEligible)
+    .sort((a, b) => b.daysParticipated - a.daysParticipated);
+
   return {
     season: leagueGroup.season,
     clanTag,
     lastUpdated: new Date().toISOString(),
-    memberPoints: Array.from(memberPointsMap.values()).sort(
-      (a, b) => b.totalPoints - a.totalPoints
-    ),
+    memberPoints: [...eligible, ...ineligible],
     totalWarDays: leagueGroup.rounds.length,
     completedWarDays: Math.min(completedWarDays, leagueGroup.rounds.length), // Ensure completed rounds do not exceed total rounds
   };
@@ -225,7 +260,7 @@ export function calculateCWLSeasonPoints(
  */
 export function getMemberPointsSummary(
   memberPoints: CWLMemberPoints,
-  totalRounds: number
+  totalRounds: number,
 ) {
   const avgAttackPoints =
     memberPoints.attacksUsed > 0
@@ -240,7 +275,7 @@ export function getMemberPointsSummary(
     ...memberPoints,
     avgAttackPoints: Math.round(avgAttackPoints * 100) / 100,
     avgDefensePoints: Math.round(avgDefensePoints * 100) / 100,
-    participationRate: (memberPoints.attacksUsed / totalRounds) * 100,
+    participationRate: (memberPoints.daysParticipated / totalRounds) * 100,
   };
 }
 
@@ -251,10 +286,12 @@ export function exportPointsToCSV(seasonPoints: CWLSeasonPoints): string {
   const headers = [
     "Member Name",
     "Member Tag",
+    "Avg Points/Day",
+    "Total Points",
     "Attack Points",
     "Defense Points",
     "Bonus Points",
-    "Total Points",
+    "Days Participated",
     "Attacks Used",
     "Times Defended",
     "Avg Attack Points",
@@ -267,10 +304,12 @@ export function exportPointsToCSV(seasonPoints: CWLSeasonPoints): string {
     return [
       member.memberName,
       member.memberTag,
+      member.avgPoints,
+      member.totalPoints,
       member.attackPoints,
       member.defensePoints,
       member.bonusPoints,
-      member.totalPoints,
+      member.daysParticipated,
       member.attacksUsed,
       member.timesDefended,
       summary.avgAttackPoints,

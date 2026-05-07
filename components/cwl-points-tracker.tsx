@@ -142,28 +142,31 @@ export function CWLPointsTracker({
                 {seasonPoints.memberPoints.length}
               </div>
               <div className="text-sm text-muted-foreground">
-                Active Members
+                Qualified Members
+              </div>
+              <div className="text-xs text-muted-foreground">
+                (≥3 days played)
               </div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold">
                 {seasonPoints.memberPoints.reduce(
                   (sum, m) => sum + m.attacksUsed,
-                  0
+                  0,
                 )}
               </div>
               <div className="text-sm text-muted-foreground">Total Attacks</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold">
-                {Math.round(
+                {(
                   seasonPoints.memberPoints.reduce(
-                    (sum, m) => sum + m.totalPoints,
-                    0
-                  ) / seasonPoints.memberPoints.length
-                )}
+                    (sum, m) => sum + m.avgPoints,
+                    0,
+                  ) / Math.max(seasonPoints.memberPoints.length, 1)
+                ).toFixed(2)}
               </div>
-              <div className="text-sm text-muted-foreground">Avg Points</div>
+              <div className="text-sm text-muted-foreground">Avg Pts/Day</div>
             </div>
           </div>
         </CardContent>
@@ -294,7 +297,8 @@ export function CWLPointsTracker({
             <CardHeader>
               <CardTitle>Points Leaderboard</CardTitle>
               <CardDescription>
-                Members ranked by total points earned this season
+                Members ranked by average points per day played (min. 3 days
+                required). Ties broken by total points.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -303,27 +307,26 @@ export function CWLPointsTracker({
                   <TableRow>
                     <TableHead className="w-12">#</TableHead>
                     <TableHead>Member</TableHead>
+                    <TableHead className="text-center">Avg/Day</TableHead>
                     <TableHead className="text-center">Total</TableHead>
                     <TableHead className="text-center">Attack</TableHead>
                     <TableHead className="text-center">Defense</TableHead>
                     <TableHead className="text-center">Bonus</TableHead>
-                    <TableHead className="text-center">Participation</TableHead>
+                    <TableHead className="text-center">Days</TableHead>
                   </TableRow>
                 </TableHeader>{" "}
                 <TableBody>
                   {seasonPoints.memberPoints.map((member, index) => {
-                    const summary = getMemberPointsSummary(
-                      member,
-                      seasonPoints.totalWarDays
-                    );
                     return (
                       <TableRow
                         key={member.memberTag}
-                        className="cursor-pointer hover:bg-accent/50"
+                        className={`cursor-pointer hover:bg-accent/50 ${
+                          !member.isEligible ? "opacity-50 bg-muted/30" : ""
+                        }`}
                         onClick={() => setSelectedMember(member.memberTag)}
                       >
                         <TableCell className="font-medium">
-                          {index + 1}
+                          {member.isEligible ? index + 1 : "-"}
                         </TableCell>
                         <TableCell>
                           <div>
@@ -336,11 +339,22 @@ export function CWLPointsTracker({
                           </div>
                         </TableCell>
                         <TableCell className="text-center">
-                          <Badge
-                            variant={getPointsBadgeVariant(member.totalPoints)}
-                          >
+                          {member.isEligible ? (
+                            <Badge
+                              variant={getPointsBadgeVariant(member.avgPoints)}
+                            >
+                              {member.avgPoints.toFixed(2)}
+                            </Badge>
+                          ) : (
+                            <span className="text-muted-foreground text-xs">
+                              ineligible
+                            </span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <span className="text-sm text-muted-foreground">
                             {member.totalPoints}
-                          </Badge>
+                          </span>
                         </TableCell>
                         <TableCell className="text-center">
                           <div className="flex items-center justify-center gap-1">
@@ -377,14 +391,21 @@ export function CWLPointsTracker({
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger>
-                                <Badge variant="outline">
-                                  {member.attacksUsed}/
+                                <Badge
+                                  variant={
+                                    member.isEligible
+                                      ? "outline"
+                                      : "destructive"
+                                  }
+                                >
+                                  {member.daysParticipated}/
                                   {seasonPoints.totalWarDays}
                                 </Badge>
                               </TooltipTrigger>
                               <TooltipContent>
-                                {summary.participationRate.toFixed(1)}%
-                                participation rate
+                                {member.isEligible
+                                  ? `${member.daysParticipated} of ${seasonPoints.totalWarDays} war days played`
+                                  : `Only ${member.daysParticipated} of ${seasonPoints.totalWarDays} days played — minimum 3 required`}
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
@@ -412,6 +433,7 @@ export function CWLPointsTracker({
                   <TableHeader>
                     <TableRow>
                       <TableHead>Member</TableHead>
+                      <TableHead className="text-center">Avg/Day</TableHead>
                       <TableHead className="text-center">
                         Total Points
                       </TableHead>
@@ -424,6 +446,7 @@ export function CWLPointsTracker({
                       <TableHead className="text-center">
                         Bonus Points
                       </TableHead>
+                      <TableHead className="text-center">Days Played</TableHead>
                       <TableHead className="text-center">Avg Attack</TableHead>
                       <TableHead className="text-center">Avg Defense</TableHead>
                       <TableHead className="text-center">
@@ -438,10 +461,15 @@ export function CWLPointsTracker({
                     {seasonPoints.memberPoints.map((member) => {
                       const summary = getMemberPointsSummary(
                         member,
-                        seasonPoints.totalWarDays
+                        seasonPoints.totalWarDays,
                       );
                       return (
-                        <TableRow key={member.memberTag}>
+                        <TableRow
+                          key={member.memberTag}
+                          className={
+                            !member.isEligible ? "opacity-50 bg-muted/30" : ""
+                          }
+                        >
                           <TableCell>
                             <div>
                               <div className="font-medium">
@@ -453,13 +481,22 @@ export function CWLPointsTracker({
                             </div>
                           </TableCell>
                           <TableCell className="text-center">
-                            <Badge
-                              variant={getPointsBadgeVariant(
-                                member.totalPoints
-                              )}
-                            >
-                              {member.totalPoints}
-                            </Badge>
+                            {member.isEligible ? (
+                              <Badge
+                                variant={getPointsBadgeVariant(
+                                  member.avgPoints,
+                                )}
+                              >
+                                {member.avgPoints.toFixed(2)}
+                              </Badge>
+                            ) : (
+                              <span className="text-muted-foreground text-xs">
+                                ineligible
+                              </span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {member.totalPoints}
                           </TableCell>
                           <TableCell className="text-center">
                             {member.attackPoints}
@@ -476,6 +513,10 @@ export function CWLPointsTracker({
                             ) : (
                               <span className="text-muted-foreground">-</span>
                             )}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {member.daysParticipated}/
+                            {seasonPoints.totalWarDays}
                           </TableCell>
                           <TableCell className="text-center">
                             {summary.avgAttackPoints}
@@ -512,7 +553,15 @@ export function CWLPointsTracker({
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                  <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold">
+                        {selectedMemberData.avgPoints.toFixed(2)}
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        Avg Pts/Day
+                      </div>
+                    </div>
                     <div className="text-center">
                       <div className="text-2xl font-bold">
                         {selectedMemberData.totalPoints}
@@ -554,15 +603,11 @@ export function CWLPointsTracker({
                     </div>
                     <div className="text-center">
                       <div className="text-2xl font-bold">
-                        {(
-                          (selectedMemberData.attacksUsed /
-                            seasonPoints.totalWarDays) *
-                          100
-                        ).toFixed(0)}
-                        %
+                        {selectedMemberData.daysParticipated}/
+                        {seasonPoints.totalWarDays}
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        Participation
+                        Days Played
                       </div>
                     </div>
                   </div>
@@ -664,7 +709,7 @@ export function CWLPointsTracker({
                               </Badge>
                             </TableCell>
                           </TableRow>
-                        )
+                        ),
                       )}
                     </TableBody>
                   </Table>
